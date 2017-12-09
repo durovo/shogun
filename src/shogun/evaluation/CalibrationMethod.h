@@ -12,18 +12,18 @@
 #include <shogun/mathematics/Math.h>
 #include <shogun/lib/config.h>
 
-#ifndef _CALIBRATION_H__
-#define _CALIBRATION_H__
+#ifndef _CALIBRATION_METHOD_H__
+#define _CALIBRATION_METHOD_H__
 
 namespace shogun 
 {
 
-class CCalibration: public CMachine 
+class CCalibrationMethod: public CMachine 
 {
 public:
 	virtual const char* get_name() const
 	{
-		return "Calibration";
+		return "CalibrationMethod";
 	}
 
 	virtual EProblemType get_machine_problem_type() const
@@ -31,13 +31,10 @@ public:
 		return PT_BINARY;
 	}
 
-	virtual bool train(CFeatures* data=NULL);
+	virtual bool train(SGVector<float64_t> values);//, SGVector<float64_t> target_values);
 
-	virtual bool train_locked(SGVector<index_t> subset_indices);
+	virtual SGVector<float64_t> apply_binary(SGVector<float64_t> values);
 
-	virtual CBinaryLabels* apply_binary(CFeatures* features);
-
-	virtual CBinaryLabels* apply_locked_binary(SGVector<index_t> subset_indices);
 	/** constructor, for use with custom kernels (no features)
 	 * @param machine learning machine to use
 	 * @param labels labels that correspond to the features
@@ -45,19 +42,11 @@ public:
 	 * @param evaluation_criterion evaluation criterion to use
 	 * @param autolock autolock
 	 */
-	CCalibration();
+	CCalibrationMethod();
 
-	~CCalibration();
-
-	void init();
-
-	void set_machine(CMachine* machine);
-
-	CMachine* get_machine();
+	~CCalibrationMethod();
 
 private:
-	CMachine* m_machine;
-	CFeatures* m_features;
 	float64_t a, b;
 
 };

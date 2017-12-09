@@ -12,6 +12,7 @@
 #include <shogun/mathematics/Statistics.h>
 #include <shogun/mathematics/Math.h>
 #include <shogun/evaluation/Calibration.h>
+#include <shogun/evaluation/CalibrationMethod.h>
 #include <shogun/lib/config.h>
 
 using namespace shogun;
@@ -23,37 +24,49 @@ CBinaryLabels* CCalibration::apply_binary(CFeatures* features)
 	{
 		features = m_features;
 	}
-	//Code taken from CBinaryLabels
-	CBinaryLabels* m_result = (CBinaryLabels*)m_machine->apply_binary(features);
-	SGVector<float64_t> m_result_labels = m_result->get_values();
-	for (index_t i = 0; i < m_result_labels.vlen; ++i)
-	{
-		float64_t fApB = m_result_labels[i] * a + b;
-		m_result_labels[i] = fApB >= 0 ? CMath::exp(-fApB) / (1.0 + CMath::exp(-fApB)) :
-		                      1.0 / (1 + CMath::exp(fApB));
-	}
-	m_result->set_values(m_result_labels);
+	CBinaryLabels* result_labels = (CBinaryLabels*)m_machine->apply(features);
+	CCalibrationMethod* method = (CCalibrationMethod*)m_calibration_machines->get_element(0);
+	SGVector<float64_t> confidence_values = method->apply_binary(result_labels->get_values());
+	result_labels->set_values(confidence_values);
+	
 
-	return m_result;
+
+	return result_labels;
 	//return new CBinaryLabels;
 	
 }
 
-CBinaryLabels* CCalibration::apply_locked_binary(SGVector<index_t> subset_indices) 
+CMulticlassLabels* CCalibration::apply_multiclass(CFeatures* features)
 {
-	CBinaryLabels* m_result = (CBinaryLabels*)m_machine->apply_locked(subset_indices);
-	SGVector<float64_t> m_result_labels = m_result->get_values();
-
-	for (index_t i = 0; i < m_result_labels.vlen; ++i)
+	//I don't think that this is necessary
+	if (features == NULL) 
 	{
-		float64_t fApB = m_result_labels[i] * a + b;
-		m_result_labels[i] = fApB >= 0 ? CMath::exp(-fApB) / (1.0 + CMath::exp(-fApB)) :
-		                      1.0 / (1 + CMath::exp(fApB));
+		features = m_features;
+	}
+
+	index_t num_calibration_machines = m_calibration_machines->get_num_elements();
+	CMulticlassLabels* result_labels = (CMulticlassLabels*)m_machine->apply(features);
+	for (index_t i=0; i<num_calibration_machines; ++i)
+	{
+		CCalibrationMethod* method = (CCalibrationMethod*)m_calibration_machines->get_element(i);
+		SGVector<float64_t> confidence_values = method->apply_binary(result_labels->get_multiclass_confidences(i));
+		result_labels->set_multiclass_confidences(i, confidence_values);
 	}
 	
-	m_result->set_values(m_result_labels);
 
-	return m_result;
+
+	return result_labels;
+}
+
+CBinaryLabels* CCalibration::apply_locked_binary(SGVector<index_t> subset_indices) 
+{
+
+	CBinaryLabels* result_labels = (CBinaryLabels*)m_machine->apply_locked(subset_indices);
+	CCalibrationMethod* method = (CCalibrationMethod*)m_calibration_machines->get_element(0);
+	SGVector<float64_t> confidence_values = method->apply_binary(result_labels->get_values());
+	result_labels->set_values(confidence_values);
+
+	return result_labels;
 }
 
 EProblemType CCalibration::get_machine_problem_type() const
@@ -63,11 +76,43 @@ EProblemType CCalibration::get_machine_problem_type() const
 
 bool CCalibration::train(CFeatures* features) 
 {
-	CBinaryLabels* m_result_labels = (CBinaryLabels*)m_machine->apply(features);
-	CStatistics::SigmoidParamters params =
-		        CStatistics::fit_sigmoid(m_result_labels->get_values());
-	a = params.a;
-	b = params.b;
+	CCalibrationMethod* calibration_machine = NULL;
+	if (get_machine_problem_type() == PT_MULTICLASS) 
+	{
+		SGVector<float64_t> confidences;
+		index_t num_calibration_machines = ((CMulticlassLabels*)get_labels())->get_num_classes();
+		m_calibration_machines = new CDynamicObjectArray(num_calibration_machines);
+		m_machine->train(features);
+		CMulticlassLabels* result_labels = (CMulticlassLabels*)m_machine->apply(features);
+		for (index_t i=0; i<num_calibration_machines; ++i)
+		{
+			confidences = result_labels->get_multiclass_confidences(i);
+
+			calibration_machine = (CCalibrationMethod*)m_method->clone();
+			if (!calibration_machine->train(confidences))
+			{
+				return false;
+			}
+			m_calibration_machines->set_element(calibration_machine, i);
+
+		}
+	}
+	else 
+	{
+		SGVector<float64_t> confidences;
+		m_calibration_machines = new CDynamicObjectArray(1);
+		m_machine->train(features);
+		CBinaryLabels* result_labels = (CBinaryLabels*)m_machine->apply_binary(features);
+
+		confidences = result_labels->get_values();
+
+		calibration_machine = (CCalibrationMethod*)m_method->clone();
+		if (!calibration_machine->train(confidences))
+		{
+			return false;
+		}
+		m_calibration_machines->set_element(calibration_machine, 0);
+	}
 
 	return true;
 }
@@ -86,6 +131,11 @@ bool CCalibration::train_locked(SGVector<index_t> subset_indices)
 CCalibration::CCalibration(): CMachine()
 {
 	init();
+}
+
+void CCalibration::set_calibration_method(CCalibrationMethod* method) 
+{
+	m_method = method;
 }
 
 void CCalibration::set_machine(CMachine* machine)

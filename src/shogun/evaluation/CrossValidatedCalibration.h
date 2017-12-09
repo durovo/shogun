@@ -54,12 +54,12 @@ public:
 	 * @param labels labels that correspond to the features
 	 * @param splitting_strategy splitting strategy to use
 	 * @param evaluation_criterion evaluation criterion to use
-	 * @param calibrator calibration machine to use
+	 * @param calibration_method calibration method to use
 	 * evaluation
 	 */
 	CCrossValidatedCalibration(
 	    CMachine* machine, CFeatures* features, CBinaryLabels* labels,
-	    CSplittingStrategy* splitting_strategy, CCalibration* calibrator);
+	    CSplittingStrategy* splitting_strategy, CCalibrationMethod* calibration_method);
 
 	/** constructor, for use with custom kernels (no features)
 	 * @param machine learning machine to use
@@ -70,7 +70,7 @@ public:
 	 */
 	CCrossValidatedCalibration(
 	    CMachine* machine, CBinaryLabels* labels,
-	    CSplittingStrategy* splitting_strategy, CCalibration* calibrator);
+	    CSplittingStrategy* splitting_strategy, CCalibrationMethod* calibration_method);
 
 	~CCrossValidatedCalibration();
 
@@ -86,7 +86,7 @@ public:
 		CBinaryLabels* m_labels;
 		CSplittingStrategy* m_splitting_strategy;
 		CFeatures* m_features;
-		CCalibration* m_calibrator;
+		CCalibrationMethod* m_calibration_method;
 
 };
 }

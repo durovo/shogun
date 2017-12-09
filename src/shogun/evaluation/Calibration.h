@@ -8,9 +8,9 @@
  * Copyright (C) 2011 Berlin Institute of Technology and Max-Planck-Society
  */
 
-#include <shogun/machine/Machine.h>
-#include <shogun/mathematics/Math.h>
 #include <shogun/lib/config.h>
+#include <shogun/evaluation/CalibrationMethod.h>
+#include <shogun/machine/Machine.h>
 
 #ifndef _CALIBRATION_H__
 #define _CALIBRATION_H__
@@ -34,6 +34,8 @@ public:
 
 	virtual CBinaryLabels* apply_binary(CFeatures* features);
 
+	virtual CMulticlassLabels* apply_multiclass(CFeatures* features);	
+
 	virtual CBinaryLabels* apply_locked_binary(SGVector<index_t> subset_indices);
 
 	/** constructor
@@ -46,12 +48,16 @@ public:
 
 	void set_machine(CMachine* machine);
 
+	void set_calibration_method(CCalibrationMethod* calibration_method);
+
 	CMachine* get_machine();
 
 private:
 	CMachine* m_machine;
 	CFeatures* m_features;
 	float64_t a, b;
+	CDynamicObjectArray* m_calibration_machines;
+	CCalibrationMethod* m_method;
 
 };
 }

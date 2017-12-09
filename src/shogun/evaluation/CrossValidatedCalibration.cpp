@@ -13,6 +13,7 @@
 #include <shogun/mathematics/Statistics.h>
 #include <shogun/evaluation/CrossValidatedCalibration.h>
 #include <shogun/evaluation/Calibration.h>
+#include <shogun/evaluation/CalibrationMethod.h>
 #include <shogun/lib/config.h>
 
 using namespace shogun;
@@ -107,9 +108,10 @@ bool CCrossValidatedCalibration::train(CFeatures* data)
 			    subset_indices.vector, subset_indices.vlen, "test indices");
 		}
 
-		CCalibration* calibrator = (CCalibration*) m_calibrator->clone();
+		CCalibration* calibrator = new CCalibration();
 		calibrator->set_machine((CMachine*)machine->clone());
 		calibrator->set_labels((CBinaryLabels*)labels->clone());
+		calibrator->set_calibration_method((CCalibrationMethod*)m_calibration_method->clone());
 		bool trained = calibrator->train((CFeatures*)features->clone());
 
 		if (!trained) {
@@ -184,9 +186,11 @@ bool CCrossValidatedCalibration::train_locked(SGVector<index_t> indices)
 		m_labels->add_subset(subset_indices);
 
 		/* produce output for desired indices */
-		CCalibration* calibrator = (CCalibration*) m_calibrator->clone();
+		CCalibration* calibrator = new CCalibration();
 		calibrator->set_machine((CMachine*)m_machine->clone());
 		calibrator->set_labels((CBinaryLabels*)m_labels->clone());
+		calibrator->set_calibration_method((CCalibrationMethod*)m_calibration_method->clone());
+
 		
 		bool trained = calibrator->train_locked(subset_indices);
 
@@ -243,7 +247,8 @@ CBinaryLabels* CCrossValidatedCalibration::apply_binary(CFeatures* features) {
 	return result_labels;
 }
 
-CBinaryLabels* CCrossValidatedCalibration::apply_locked_binary(SGVector<index_t> subset_indices) {
+CBinaryLabels* CCrossValidatedCalibration::apply_locked_binary(
+	SGVector<index_t> subset_indices) {
 
 	index_t num_machines = m_calibration_machines->get_num_elements();
 
@@ -294,8 +299,9 @@ CCrossValidatedCalibration::CCrossValidatedCalibration(): CMachine()
 	init();
 }
 CCrossValidatedCalibration::CCrossValidatedCalibration(
-	    CMachine* machine, CFeatures* features, CBinaryLabels* labels, 
-	    CSplittingStrategy* splitting_strategy, CCalibration* calibrator): CMachine() 
+	    CMachine* machine, CFeatures* features, 
+	    CBinaryLabels* labels, CSplittingStrategy* splitting_strategy, 
+	    CCalibrationMethod* calibration_method): CMachine() 
 {
 	init();
 
@@ -303,19 +309,21 @@ CCrossValidatedCalibration::CCrossValidatedCalibration(
 	m_labels = labels;
 	m_splitting_strategy = splitting_strategy;
 	m_features = features;
-	m_calibrator = calibrator;
+	m_calibration_method = calibration_method;
 }
 
 CCrossValidatedCalibration::CCrossValidatedCalibration(
 	    CMachine* machine, CBinaryLabels* labels,
-	    CSplittingStrategy* splitting_strategy, CCalibration* calibrator): CMachine() 
+	    CSplittingStrategy* splitting_strategy, 
+	    CCalibrationMethod* calibration_method): CMachine() 
 {
 	init();
 
 	m_machine = machine;
 	m_labels = labels;
 	m_splitting_strategy = splitting_strategy;
-	m_calibrator = calibrator;
+	m_calibration_method = calibration_method;
+	m_calibration_method = calibration_method;
 }
 
 void CCrossValidatedCalibration::init() {
@@ -323,13 +331,13 @@ void CCrossValidatedCalibration::init() {
 	m_labels = NULL;
 	m_splitting_strategy = NULL;
 	m_features = NULL;
-	m_calibrator = NULL;
+	m_calibration_method = NULL;
 }
 
 CCrossValidatedCalibration::~CCrossValidatedCalibration() {
 	SG_UNREF(m_machine);
 	SG_UNREF(m_labels);
 	SG_UNREF(m_splitting_strategy);
-	SG_UNREF(m_calibrator);
+	SG_UNREF(m_calibration_method);
 	SG_UNREF(m_features);
 }

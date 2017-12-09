@@ -27,22 +27,16 @@ class CCrossValidatedCalibration: public CMachine
 public:
 	virtual const char* get_name() const
 	{
-		return "Calibration";
+		return "CrossValidatedCalibration";
 	}
 	
 	virtual EProblemType get_machine_problem_type() const;
 
 	virtual bool train(CFeatures* data=NULL);
 
-	// bool get_probabilities(CFeatures* data=NULL);
-
 	virtual CBinaryLabels* apply_binary(CFeatures* features=NULL);
 
 	virtual CBinaryLabels* apply_locked_binary(SGVector<index_t> subset_indices);
-
-	// virtual CMulticlassLabels* apply_multiclass(CFeatures* features=NULL);
-
-	// virtual CMulticlassLabels* apply_multiclass_locked(SGVector<index_t> subset_indices);
 
 	virtual bool train_locked(SGVector<index_t> indices);
 
@@ -53,19 +47,6 @@ public:
 	CCrossValidatedCalibration();
 
 	/** constructor
-	 * @param machine learning machine to use
-	 * @param features features to use for cross-validation
-	 * @param labels labels that correspond to the features
-	 * @param splitting_strategy splitting strategy to use
-	 * @param evaluation_criterion evaluation criterion to use
-	 * @param calibration_method calibration method to use
-	 * evaluation
-	 */
-	CCrossValidatedCalibration(
-	    CMachine* machine, CFeatures* features, CLabels* labels,
-	    CSplittingStrategy* splitting_strategy, CCalibrationMethod* calibration_method);
-
-	/** constructor, for use with custom kernels (no features)
 	 * @param machine learning machine to use
 	 * @param labels labels that correspond to the features
 	 * @param splitting_strategy splitting strategy to use
@@ -89,7 +70,6 @@ public:
 		CMachine* m_machine;
 		CLabels* m_labels;
 		CSplittingStrategy* m_splitting_strategy;
-		CFeatures* m_features;
 		CCalibrationMethod* m_calibration_method;
 
 };

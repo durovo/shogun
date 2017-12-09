@@ -19,31 +19,17 @@ using namespace shogun;
 
 CBinaryLabels* CCalibration::apply_binary(CFeatures* features) 
 {
-	//I don't think that this is necessary
-	if (features == NULL) 
-	{
-		features = m_features;
-	}
+
 	CBinaryLabels* result_labels = (CBinaryLabels*)m_machine->apply(features);
 	CCalibrationMethod* method = (CCalibrationMethod*)m_calibration_machines->get_element(0);
 	SGVector<float64_t> confidence_values = method->apply_binary(result_labels->get_values());
 	result_labels->set_values(confidence_values);
-	
-
 
 	return result_labels;
-	//return new CBinaryLabels;
-	
 }
 
 CMulticlassLabels* CCalibration::apply_multiclass(CFeatures* features)
 {
-	//I don't think that this is necessary
-	if (features == NULL) 
-	{
-		features = m_features;
-	}
-
 	index_t num_calibration_machines = m_calibration_machines->get_num_elements();
 	CMulticlassLabels* result_labels = (CMulticlassLabels*)m_machine->apply(features);
 	for (index_t i=0; i<num_calibration_machines; ++i)
@@ -52,9 +38,77 @@ CMulticlassLabels* CCalibration::apply_multiclass(CFeatures* features)
 		SGVector<float64_t> confidence_values = method->apply_binary(result_labels->get_multiclass_confidences(i));
 		result_labels->set_multiclass_confidences(i, confidence_values);
 	}
+	SGVector<float64_t> temp_confidences;
+	index_t num_classes = result_labels->get_num_classes();
+	index_t num_samples;
+	for (index_t i=0; i<num_classes; ++i)
+	{
+		SGVector<float64_t> confidence_values = result_labels->get_multiclass_confidences(i);
+		if (i==0) 
+		{
+			temp_confidences = confidence_values;
+			num_samples = temp_confidences.vlen;
+			continue;
+		}
+
+		for (index_t j=0; j<num_samples; ++j)
+		{
+			temp_confidences[j] += confidence_values[j];
+		}
+	}
+	for (index_t i=0; i<num_classes; ++i)
+	{
+		SGVector<float64_t> confidence_values = result_labels->get_multiclass_confidences(i);
+		for (index_t j=0; j<num_samples; ++j)
+		{
+			confidence_values[j] = confidence_values[j]/temp_confidences[j];
+		}
+		result_labels->set_multiclass_confidences(i, confidence_values);
+
+	}
 	
+	return result_labels;
+}
 
+CMulticlassLabels* CCalibration::apply_locked_multiclass(SGVector<index_t> subset_indices)
+{
+	index_t num_calibration_machines = m_calibration_machines->get_num_elements();
+	CMulticlassLabels* result_labels = (CMulticlassLabels*)m_machine->apply_locked(subset_indices);
+	for (index_t i=0; i<num_calibration_machines; ++i)
+	{
+		CCalibrationMethod* method = (CCalibrationMethod*)m_calibration_machines->get_element(i);
+		SGVector<float64_t> confidence_values = method->apply_binary(result_labels->get_multiclass_confidences(i));
+		result_labels->set_multiclass_confidences(i, confidence_values);
+	}
+	SGVector<float64_t> temp_confidences;
+	index_t num_classes = result_labels->get_num_classes();
+	index_t num_samples;
+	for (index_t i=0; i<num_classes; ++i)
+	{
+		SGVector<float64_t> confidence_values = result_labels->get_multiclass_confidences(i);
+		if (i==0) 
+		{
+			temp_confidences = confidence_values;
+			num_samples = temp_confidences.vlen;
+			continue;
+		}
 
+		for (index_t j=0; j<num_samples; ++j)
+		{
+			temp_confidences[j] += confidence_values[j];
+		}
+	}
+	for (index_t i=0; i<num_classes; ++i)
+	{
+		SGVector<float64_t> confidence_values = result_labels->get_multiclass_confidences(i);
+		for (index_t j=0; j<num_samples; ++j)
+		{
+			confidence_values[j] /= temp_confidences[j];
+		}
+		result_labels->set_multiclass_confidences(i, confidence_values);
+
+	}
+	
 	return result_labels;
 }
 
@@ -150,6 +204,8 @@ void CCalibration::init()
 }
 
 CCalibration::~CCalibration() {
+
+	SG_UNREF(m_calibration_machines);
 	SG_UNREF(m_machine);
 	SG_UNREF(m_labels);
 }

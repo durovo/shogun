@@ -9,30 +9,19 @@
  */
 
 #include <shogun/machine/Machine.h>
-#include <shogun/mathematics/Statistics.h>
-#include <shogun/mathematics/Math.h>
 #include <shogun/evaluation/CalibrationMethod.h>
 
 using namespace shogun;
 
 SGVector<float64_t> CCalibrationMethod::apply_binary(SGVector<float64_t> values) 
 {
-	for (index_t i = 0; i < values.vlen; ++i)
-	{
-		float64_t fApB = values[i] * a + b;
-		values[i] = fApB >= 0 ? CMath::exp(-fApB) / (1.0 + CMath::exp(-fApB)) :
-		                      1.0 / (1 + CMath::exp(fApB));
-	}
-	return values;
+	SG_NOTIMPLEMENTED
 	
 }
 
 bool CCalibrationMethod::train(SGVector<float64_t> values)
 {
-	CStatistics::SigmoidParamters params =
-		        CStatistics::fit_sigmoid(values);
-	a = params.a;
-	b = params.b;
+	SG_NOTIMPLEMENTED
 
 	return true;
 }

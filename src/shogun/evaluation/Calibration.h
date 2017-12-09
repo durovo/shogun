@@ -34,7 +34,9 @@ public:
 
 	virtual CBinaryLabels* apply_binary(CFeatures* features);
 
-	virtual CMulticlassLabels* apply_multiclass(CFeatures* features);	
+	virtual CMulticlassLabels* apply_multiclass(CFeatures* features);
+
+	virtual CMulticlassLabels* apply_locked_multiclass(SGVector<index_t> subset_indices);	
 
 	virtual CBinaryLabels* apply_locked_binary(SGVector<index_t> subset_indices);
 
@@ -54,7 +56,6 @@ public:
 
 private:
 	CMachine* m_machine;
-	CFeatures* m_features;
 	float64_t a, b;
 	CDynamicObjectArray* m_calibration_machines;
 	CCalibrationMethod* m_method;

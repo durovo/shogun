@@ -9,20 +9,22 @@
  */
 
 #include <shogun/machine/Machine.h>
+#include <shogun/mathematics/Math.h>
 #include <shogun/lib/config.h>
+#include <shogun/evaluation/CalibrationMethod.h>
 
-#ifndef _CALIBRATION_METHOD_H__
-#define _CALIBRATION_METHOD_H__
+#ifndef _SIGMOID_CALIBRATION_METHOD_H__
+#define _SIGMOID_CALIBRATION_METHOD_H__
 
 namespace shogun 
 {
 
-class CCalibrationMethod: public CMachine 
+class CSigmoidCalibrationMethod: public CCalibrationMethod
 {
 public:
 	virtual const char* get_name() const
 	{
-		return "CalibrationMethod";
+		return "SigmoidCalibrationMethod";
 	}
 
 	virtual EProblemType get_machine_problem_type() const
@@ -36,17 +38,21 @@ public:
 
 	void set_target_values(SGVector<float64_t> target_values);
 
-	CCalibrationMethod();
-
-	/** constructor
-	 * @param target_values, value true value of each label
+	/** constructor, for use with custom kernels (no features)
+	 * @param machine learning machine to use
+	 * @param labels labels that correspond to the features
+	 * @param splitting_strategy splitting strategy to use
+	 * @param evaluation_criterion evaluation criterion to use
+	 * @param autolock autolock
 	 */
-	CCalibrationMethod(SGVector<float64_t> target_values);
+	CSigmoidCalibrationMethod();
 
-	~CCalibrationMethod();
+	CSigmoidCalibrationMethod(SGVector<float64_t> target_values);
+
+	~CSigmoidCalibrationMethod();
 
 private:
-	SGVector<float64_t> m_target_values;
+	float64_t a, b;
 };
 }
 #endif

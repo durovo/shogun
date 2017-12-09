@@ -25,12 +25,11 @@ EProblemType CCrossValidatedCalibration::get_machine_problem_type() const
 
 bool CCrossValidatedCalibration::train(CFeatures* data)
 {
-	SG_DEBUG("entering %s::evaluate_one_run()\n", get_name())
 	index_t num_subsets = m_splitting_strategy->get_num_subsets();
 
 	m_calibration_machines = new CDynamicObjectArray(num_subsets);
 
-	SG_DEBUG("building index sets for %d-fold cross-validation\n", num_subsets)
+	SG_DEBUG("building index sets for %d-fold cross-validated calibration\n", num_subsets)
 
 	/* build index sets */
 	m_splitting_strategy->build_subsets();
@@ -40,15 +39,11 @@ bool CCrossValidatedCalibration::train(CFeatures* data)
 		return false;
 
 	}
-	SG_DEBUG("starting unlocked evaluation\n", get_name())
+	SG_DEBUG("starting unlocked calibration\n", get_name())
 	/* tell machine to store model internally
 	 * (otherwise changing subset of features will kaboom the classifier) */
 	m_machine->set_store_model_features(true);
 
-	/* do actual cross-validation */
-
-	// TODO parallel xvalidation needs some serious fixing, see #3743
-	//#pragma omp parallel for
 	for (index_t i = 0; i < num_subsets; ++i)
 	{
 		CMachine* machine;
@@ -58,12 +53,12 @@ bool CCrossValidatedCalibration::train(CFeatures* data)
 		if (get_global_parallel()->get_num_threads() == 1)
 		{
 			machine = m_machine;
-			features = m_features;
+			features = data;
 		}
 		else
 		{
 			machine = (CMachine*)m_machine->clone();
-			features = (CFeatures*)m_features->clone();
+			features = (CFeatures*)data->clone();
 		}
 
 		/* set feature subset for training */
@@ -124,10 +119,6 @@ bool CCrossValidatedCalibration::train(CFeatures* data)
 		SG_DEBUG("finished evaluation\n")
 		features->remove_subset();
 
-		/* evaluate */
-		//results[i] = evaluation_criterion->evaluate(result_labels, labels);
-		//SG_DEBUG("result on fold %d is %f\n", i, results[i])
-
 		/* clean up, remove subsets */
 		labels->remove_subset();
 		if (get_global_parallel()->get_num_threads() != 1)
@@ -147,13 +138,13 @@ bool CCrossValidatedCalibration::train(CFeatures* data)
 
 bool CCrossValidatedCalibration::train_locked(SGVector<index_t> indices)
 {
-	SG_DEBUG("entering %s::evaluate_one_run()\n", get_name())
+
 	index_t num_subsets = m_splitting_strategy->get_num_subsets();
 
 	m_calibration_machines = new CDynamicObjectArray(num_subsets);
 
 
-	SG_DEBUG("building index sets for %d-fold cross-validation\n", num_subsets)
+	SG_DEBUG("building index sets for %d-fold cross-validated calibration\n", num_subsets)
 
 	/* build index sets */
 	m_splitting_strategy->build_subsets();
@@ -168,7 +159,6 @@ bool CCrossValidatedCalibration::train_locked(SGVector<index_t> indices)
 	 * (otherwise changing subset of features will kaboom the classifier) */
 	m_machine->set_store_model_features(true);
 
-	/* do actual cross-validation */
 	for (index_t i = 0; i < num_subsets; ++i)
 	{
 		/* index subset for training, will be freed below */
@@ -178,7 +168,7 @@ bool CCrossValidatedCalibration::train_locked(SGVector<index_t> indices)
 		/* train machine on training features */
 		m_machine->train_locked(inverse_subset_indices);
 
-		/* feature subset for testing */
+		/* feature subset for calibration */
 		SGVector<index_t> subset_indices =
 		    m_splitting_strategy->generate_subset_indices(i);
 
@@ -208,12 +198,8 @@ bool CCrossValidatedCalibration::train_locked(SGVector<index_t> indices)
 	return true;
 }
 
-CBinaryLabels* CCrossValidatedCalibration::apply_binary(CFeatures* features) {
-	
-	if (features == NULL) {
-		features = m_features;
-	}
-
+CBinaryLabels* CCrossValidatedCalibration::apply_binary(CFeatures* features) 
+{
 	index_t num_machines = m_calibration_machines->get_num_elements();
 
 	CBinaryLabels* temp_result;
@@ -285,11 +271,6 @@ CBinaryLabels* CCrossValidatedCalibration::apply_locked_binary(
 
 CMulticlassLabels* CCrossValidatedCalibration::apply_multiclass(CFeatures* features)
 {
-	
-	if (features == NULL) {
-		features = m_features;
-	}
-
 	index_t num_machines = m_calibration_machines->get_num_elements();
 
 	index_t num_classes = ((CMulticlassLabels*)m_labels)->get_num_classes();
@@ -328,7 +309,7 @@ CMulticlassLabels* CCrossValidatedCalibration::apply_multiclass(CFeatures* featu
 		#pragma omp parallel for
 		for (index_t j=0; j<temp_values.vlen; j++) 
 		{
-			temp_values[i] = temp_values[i]/num_machines;
+			temp_values[j] = temp_values[j]/num_machines;
 
 		}
 		result_labels->set_multiclass_confidences(i, temp_values);
@@ -355,7 +336,7 @@ CMulticlassLabels* CCrossValidatedCalibration::apply_locked_multiclass(
 	for (index_t i = 0; i < num_machines; ++i) 
 	{
 		temp_machine = (CMachine*)m_calibration_machines->get_element(i);
-		temp_result = (CMulticlassLabels*)temp_machine->apply_locked(subset_indices);
+		temp_result = (CMulticlassLabels*)temp_machine->apply_locked_multiclass(subset_indices);
 		if (i==0) 
 		{
 			result_labels = temp_result;
@@ -380,7 +361,7 @@ CMulticlassLabels* CCrossValidatedCalibration::apply_locked_multiclass(
 		#pragma omp parallel for
 		for (index_t j=0; j<temp_values.vlen; j++) 
 		{
-			temp_values[i] = temp_values[i]/num_machines;
+			temp_values[j] = temp_values[j]/num_machines;
 
 		}
 		result_labels->set_multiclass_confidences(i, temp_values);
@@ -394,19 +375,6 @@ CMulticlassLabels* CCrossValidatedCalibration::apply_locked_multiclass(
 CCrossValidatedCalibration::CCrossValidatedCalibration(): CMachine() 
 {
 	init();
-}
-CCrossValidatedCalibration::CCrossValidatedCalibration(
-	    CMachine* machine, CFeatures* features, 
-	    CLabels* labels, CSplittingStrategy* splitting_strategy, 
-	    CCalibrationMethod* calibration_method): CMachine() 
-{
-	init();
-
-	m_machine = machine;
-	m_labels = labels;
-	m_splitting_strategy = splitting_strategy;
-	m_features = features;
-	m_calibration_method = calibration_method;
 }
 
 CCrossValidatedCalibration::CCrossValidatedCalibration(
@@ -427,7 +395,6 @@ void CCrossValidatedCalibration::init() {
 	m_machine = NULL;
 	m_labels = NULL;
 	m_splitting_strategy = NULL;
-	m_features = NULL;
 	m_calibration_method = NULL;
 }
 
@@ -436,5 +403,4 @@ CCrossValidatedCalibration::~CCrossValidatedCalibration() {
 	SG_UNREF(m_labels);
 	SG_UNREF(m_splitting_strategy);
 	SG_UNREF(m_calibration_method);
-	SG_UNREF(m_features);
 }

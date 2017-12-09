@@ -35,6 +35,8 @@ public:
 
 	virtual SGVector<float64_t> apply_binary(SGVector<float64_t> values);
 
+	void set_target_values(SGVector<float64_t> target_values);
+
 	/** constructor, for use with custom kernels (no features)
 	 * @param machine learning machine to use
 	 * @param labels labels that correspond to the features
@@ -44,11 +46,13 @@ public:
 	 */
 	CCalibrationMethod();
 
+	CCalibrationMethod(SGVector<float64_t> target_values);
+
 	~CCalibrationMethod();
 
 private:
 	float64_t a, b;
-
+	SGVector<float64_t> m_target_values;
 };
 }
 #endif

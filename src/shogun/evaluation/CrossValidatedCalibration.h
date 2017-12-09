@@ -46,6 +46,10 @@ public:
 
 	virtual bool train_locked(SGVector<index_t> indices);
 
+	virtual CMulticlassLabels* apply_locked_multiclass(SGVector<index_t> subset_indices);
+
+	virtual CMulticlassLabels* apply_multiclass(CFeatures* features);
+
 	CCrossValidatedCalibration();
 
 	/** constructor
@@ -58,7 +62,7 @@ public:
 	 * evaluation
 	 */
 	CCrossValidatedCalibration(
-	    CMachine* machine, CFeatures* features, CBinaryLabels* labels,
+	    CMachine* machine, CFeatures* features, CLabels* labels,
 	    CSplittingStrategy* splitting_strategy, CCalibrationMethod* calibration_method);
 
 	/** constructor, for use with custom kernels (no features)
@@ -69,7 +73,7 @@ public:
 	 * @param autolock autolock
 	 */
 	CCrossValidatedCalibration(
-	    CMachine* machine, CBinaryLabels* labels,
+	    CMachine* machine, CLabels* labels,
 	    CSplittingStrategy* splitting_strategy, CCalibrationMethod* calibration_method);
 
 	~CCrossValidatedCalibration();
@@ -83,7 +87,7 @@ public:
 	private:
 		CDynamicObjectArray* m_calibration_machines;
 		CMachine* m_machine;
-		CBinaryLabels* m_labels;
+		CLabels* m_labels;
 		CSplittingStrategy* m_splitting_strategy;
 		CFeatures* m_features;
 		CCalibrationMethod* m_calibration_method;

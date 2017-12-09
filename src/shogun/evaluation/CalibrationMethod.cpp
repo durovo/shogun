@@ -27,7 +27,7 @@ SGVector<float64_t> CCalibrationMethod::apply_binary(SGVector<float64_t> values)
 	
 }
 
-bool CCalibrationMethod::train(SGVector<float64_t> values)//, SGVector<float64_t> target_values=NULL) 
+bool CCalibrationMethod::train(SGVector<float64_t> values)
 {
 	CStatistics::SigmoidParamters params =
 		        CStatistics::fit_sigmoid(values);
@@ -38,5 +38,15 @@ bool CCalibrationMethod::train(SGVector<float64_t> values)//, SGVector<float64_t
 }
 
 CCalibrationMethod::CCalibrationMethod(): CMachine(){}
+
+void CCalibrationMethod::set_target_values(SGVector<float64_t> target_values)
+{
+	m_target_values = target_values;
+}
+
+CCalibrationMethod::CCalibrationMethod(SGVector<float64_t> target_values) 
+{
+	m_target_values = target_values;
+}
 
 CCalibrationMethod::~CCalibrationMethod() {}

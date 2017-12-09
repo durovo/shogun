@@ -74,7 +74,7 @@ bool CCrossValidatedCalibration::train(CFeatures* data)
 
 		/* set label subset for training */
 		if (get_global_parallel()->get_num_threads() == 1)
-			labels = m_labels;
+			labels = (CBinaryLabels*)m_labels;
 		else
 			labels = (CBinaryLabels*)machine->get_labels();
 		labels->add_subset(inverse_subset_indices);
@@ -283,16 +283,113 @@ CBinaryLabels* CCrossValidatedCalibration::apply_locked_binary(
 	return result_labels;
 }
 
-// CMulticlassLabels* CCrossValidatedCalibration::apply_multiclass(CFeatures* features)
-// {
-// 	if (features == NULL) 
-// 	{
-// 		features = m_features;
-// 	}
+CMulticlassLabels* CCrossValidatedCalibration::apply_multiclass(CFeatures* features)
+{
+	
+	if (features == NULL) {
+		features = m_features;
+	}
+
+	index_t num_machines = m_calibration_machines->get_num_elements();
+
+	index_t num_classes = ((CMulticlassLabels*)m_labels)->get_num_classes();
+
+	CMulticlassLabels* temp_result;
+	CMachine* temp_machine;
+	SGVector<float64_t> result_values, temp_values;
+	CMulticlassLabels* result_labels;
 
 
+	for (index_t i = 0; i < num_machines; ++i) 
+	{
+		temp_machine = (CMachine*)m_calibration_machines->get_element(i);
+		temp_result = (CMulticlassLabels*)temp_machine->apply(features);
+		if (i==0) 
+		{
+			result_labels = temp_result;
+		} 
+		else 
+		{
+			for (index_t j=0; j < num_classes; ++j) 
+			{
+				result_values = temp_result->get_multiclass_confidences(j);
+				temp_values = result_labels->get_multiclass_confidences(j);
+				temp_values += result_values;
+				result_labels->set_multiclass_confidences(j, temp_values);
+			}
+		}
+	}
 
-// }
+	
+	for (index_t i=0; i< num_classes; ++i)
+	{
+		temp_values = result_labels->get_multiclass_confidences(i);
+
+		#pragma omp parallel for
+		for (index_t j=0; j<temp_values.vlen; j++) 
+		{
+			temp_values[i] = temp_values[i]/num_machines;
+
+		}
+		result_labels->set_multiclass_confidences(i, temp_values);
+		
+	}
+
+	return result_labels;
+
+}
+
+CMulticlassLabels* CCrossValidatedCalibration::apply_locked_multiclass(
+	SGVector<index_t> subset_indices)
+{
+	index_t num_machines = m_calibration_machines->get_num_elements();
+
+	index_t num_classes = ((CMulticlassLabels*)m_labels)->get_num_classes();
+
+	CMulticlassLabels* temp_result;
+	CMachine* temp_machine;
+	SGVector<float64_t> result_values, temp_values;
+	CMulticlassLabels* result_labels;
+
+
+	for (index_t i = 0; i < num_machines; ++i) 
+	{
+		temp_machine = (CMachine*)m_calibration_machines->get_element(i);
+		temp_result = (CMulticlassLabels*)temp_machine->apply_locked(subset_indices);
+		if (i==0) 
+		{
+			result_labels = temp_result;
+		} 
+		else 
+		{
+			for (index_t j=0; j < num_classes; ++j) 
+			{
+				result_values = temp_result->get_multiclass_confidences(j);
+				temp_values = result_labels->get_multiclass_confidences(j);
+				temp_values += result_values;
+				result_labels->set_multiclass_confidences(j, temp_values);
+			}
+		}
+	}
+
+	
+	for (index_t i=0; i< num_classes; ++i)
+	{
+		temp_values = result_labels->get_multiclass_confidences(i);
+
+		#pragma omp parallel for
+		for (index_t j=0; j<temp_values.vlen; j++) 
+		{
+			temp_values[i] = temp_values[i]/num_machines;
+
+		}
+		result_labels->set_multiclass_confidences(i, temp_values);
+		
+	}
+
+	return result_labels;
+
+}
 
 CCrossValidatedCalibration::CCrossValidatedCalibration(): CMachine() 
 {
@@ -300,7 +397,7 @@ CCrossValidatedCalibration::CCrossValidatedCalibration(): CMachine()
 }
 CCrossValidatedCalibration::CCrossValidatedCalibration(
 	    CMachine* machine, CFeatures* features, 
-	    CBinaryLabels* labels, CSplittingStrategy* splitting_strategy, 
+	    CLabels* labels, CSplittingStrategy* splitting_strategy, 
 	    CCalibrationMethod* calibration_method): CMachine() 
 {
 	init();
@@ -313,7 +410,7 @@ CCrossValidatedCalibration::CCrossValidatedCalibration(
 }
 
 CCrossValidatedCalibration::CCrossValidatedCalibration(
-	    CMachine* machine, CBinaryLabels* labels,
+	    CMachine* machine, CLabels* labels,
 	    CSplittingStrategy* splitting_strategy, 
 	    CCalibrationMethod* calibration_method): CMachine() 
 {

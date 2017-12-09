@@ -38,9 +38,12 @@ CMulticlassLabels* CCalibration::apply_multiclass(CFeatures* features)
 		SGVector<float64_t> confidence_values = method->apply_binary(result_labels->get_multiclass_confidences(i));
 		result_labels->set_multiclass_confidences(i, confidence_values);
 	}
+
 	SGVector<float64_t> temp_confidences;
 	index_t num_classes = result_labels->get_num_classes();
 	index_t num_samples;
+
+	//normalize the probabilities
 	for (index_t i=0; i<num_classes; ++i)
 	{
 		SGVector<float64_t> confidence_values = result_labels->get_multiclass_confidences(i);
@@ -48,12 +51,11 @@ CMulticlassLabels* CCalibration::apply_multiclass(CFeatures* features)
 		{
 			temp_confidences = confidence_values;
 			num_samples = temp_confidences.vlen;
-			continue;
-		}
-
-		for (index_t j=0; j<num_samples; ++j)
-		{
-			temp_confidences[j] += confidence_values[j];
+		} else {
+			for (index_t j=0; j<num_samples; ++j)
+			{
+				temp_confidences[j] += confidence_values[j];
+			}
 		}
 	}
 	for (index_t i=0; i<num_classes; ++i)
@@ -83,6 +85,8 @@ CMulticlassLabels* CCalibration::apply_locked_multiclass(SGVector<index_t> subse
 	SGVector<float64_t> temp_confidences;
 	index_t num_classes = result_labels->get_num_classes();
 	index_t num_samples;
+
+	//normalize the probabilities
 	for (index_t i=0; i<num_classes; ++i)
 	{
 		SGVector<float64_t> confidence_values = result_labels->get_multiclass_confidences(i);

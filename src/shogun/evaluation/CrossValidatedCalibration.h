@@ -87,6 +87,7 @@ namespace shogun
 		virtual CMulticlassLabels* apply_multiclass(CFeatures* features);
 
 		/** get learning machine
+		*   @return learning machine
 		*/
 		CMachine* get_machine() const;
 

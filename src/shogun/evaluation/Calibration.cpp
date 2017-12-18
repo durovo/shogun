@@ -56,6 +56,7 @@ CCalibration::~CCalibration()
 	SG_UNREF(m_calibration_machines)
 	SG_UNREF(m_machine)
 	SG_UNREF(m_labels)
+	SG_UNREF(m_labels)
 	SG_UNREF(m_method)
 }
 
@@ -201,6 +202,7 @@ bool CCalibration::train_calibration_machine(T training_data)
 		SGVector<float64_t> confidences;
 		index_t num_calibration_machines =
 		    (CLabelsFactory::to_multiclass(get_labels()))->get_num_classes();
+		SG_UNREF(m_calibration_machines);
 		m_calibration_machines =
 		    new CDynamicObjectArray(num_calibration_machines);
 		train_one_machine(training_data);
@@ -225,6 +227,7 @@ bool CCalibration::train_calibration_machine(T training_data)
 	else
 	{
 		SGVector<float64_t> confidences;
+		SG_UNREF(m_calibration_machines);
 		m_calibration_machines = new CDynamicObjectArray(1);
 		train_one_machine(training_data);
 		CLabels* result = apply_once(training_data);
@@ -247,7 +250,9 @@ bool CCalibration::train_calibration_machine(T training_data)
 
 bool CCalibration::train(CFeatures* features)
 {
-	return train_calibration_machine(features);
+	bool trained =  train_calibration_machine(features);
+	SG_UNREF(features);
+	return trained;
 }
 
 bool CCalibration::train_locked(SGVector<index_t> subset_indices)
@@ -259,14 +264,14 @@ void CCalibration::set_calibration_method(CCalibrationMethod* method)
 {
 	SG_UNREF(m_method);
 	m_method = method;
-	SG_REF(m_method);
+	//SG_REF(m_method);
 }
 
 void CCalibration::set_machine(CMachine* machine)
 {
 	SG_UNREF(m_machine);
 	m_machine = machine;
-	SG_REF(m_machine);
+	//SG_REF(m_machine);
 }
 
 CMachine* CCalibration::get_machine()

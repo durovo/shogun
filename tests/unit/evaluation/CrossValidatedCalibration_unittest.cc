@@ -30,6 +30,7 @@ TEST(CrossValidatedCalibrationTest, check_probability_sum)
 	index_t n_folds = 4;
 	CStratifiedCrossValidationSplitting* splitting =
 	    new CStratifiedCrossValidationSplitting(ground_truth, n_folds);
+      
 	CMulticlassOCAS* mocas = new CMulticlassOCAS(C, train_feats, ground_truth);
 	mocas->set_epsilon(1e-5);
 	mocas->parallel->set_num_threads(1);
@@ -46,7 +47,9 @@ TEST(CrossValidatedCalibrationTest, check_probability_sum)
 	SGVector<float64_t> confidence_sums;
 	confidence_sums = pred->get_multiclass_confidences(0);
 
-	for (index_t i = 1; i < num_classes; ++i)
+  confidence_sums.zero();
+
+	for (index_t i = 0; i < num_classes; ++i)
 	{
 		SGVector<float64_t> scores = pred->get_multiclass_confidences(i);
 		confidence_sums += scores;
@@ -57,8 +60,7 @@ TEST(CrossValidatedCalibrationTest, check_probability_sum)
 	{
 		EXPECT_EQ(confidence_sums[i], 1);
 	}
-
-	SG_UNREF(train_feats)
+  
 	SG_UNREF(pred);
 	SG_UNREF(cross);
 }

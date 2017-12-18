@@ -61,9 +61,13 @@ CCrossValidatedCalibration::CCrossValidatedCalibration(
 {
 	init();
 
+	SG_UNREF(m_machine);
 	m_machine = machine;
+	SG_UNREF(m_labels);
 	m_labels = labels;
+	SG_UNREF(m_splitting_strategy);
 	m_splitting_strategy = splitting_strategy;
+	SG_UNREF(m_calibration_method);
 	m_calibration_method = calibration_method;
 
 	SG_REF(m_machine)
@@ -78,7 +82,8 @@ CCrossValidatedCalibration::~CCrossValidatedCalibration()
 	SG_UNREF(m_labels);
 	SG_UNREF(m_splitting_strategy);
 	SG_UNREF(m_calibration_method);
-	SG_UNREF(m_calibration_machines);
+	SG_UNREF(m_calibration_machines)
+	SG_UNREF(m_calibration_machines)
 }
 
 void CCrossValidatedCalibration::init()
@@ -114,6 +119,8 @@ bool CCrossValidatedCalibration::train(CFeatures* data)
 {
 	// code borrowed from Calibration.cpp
 	index_t num_subsets = m_splitting_strategy->get_num_subsets();
+
+	SG_UNREF(m_calibration_machines);
 
 	m_calibration_machines = new CDynamicObjectArray(num_subsets);
 
@@ -229,6 +236,8 @@ bool CCrossValidatedCalibration::train_locked(SGVector<index_t> indices)
 
 	index_t num_subsets = m_splitting_strategy->get_num_subsets();
 
+	SG_UNREF(m_calibration_machines);
+
 	m_calibration_machines = new CDynamicObjectArray(num_subsets);
 
 	SG_DEBUG(
@@ -323,6 +332,7 @@ CBinaryLabels* CCrossValidatedCalibration::get_binary_result(T data)
 		result = apply_once(temp_machine, data);
 		temp_result = CLabelsFactory::to_binary(result);
 		result_values += temp_result->get_values();
+		SG_UNREF(temp_result);
 	}
 
 	linalg::scale(result_values, result_values, 1.0 / num_machines);
@@ -372,7 +382,8 @@ CMulticlassLabels* CCrossValidatedCalibration::get_multiclass_result(T data)
 			temp_values += result_values;
 			result_labels->set_multiclass_confidences(j, temp_values);
 		}
-		SG_UNREF(temp_machine)
+		SG_UNREF(temp_result);
+		SG_UNREF(temp_machine);
 	}
 
 	for (index_t i = 0; i < num_classes; ++i)

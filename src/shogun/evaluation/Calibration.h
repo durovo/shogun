@@ -52,61 +52,140 @@ namespace shogun
 		 */
 		CCalibration();
 
+		/** destructor
+		*/
 		virtual ~CCalibration();
 
+		/** get name
+		 *
+		 * @return Calibration
+		 */
 		virtual const char* get_name() const
 		{
 			return "Calibration";
 		}
 
+		/** returns problem type of the machine to be calibrated
+		 * @return problem type
+		 */
 		virtual EProblemType get_machine_problem_type() const;
 
+		/** calibrate machine using given data
+		* @param data on which to calibrate the machine
+		* @return whether calibration was successful
+		*/
 		virtual bool train(CFeatures* data = NULL);
 
+		/** calibrate locked machine 
+		* @param subset_indices on which to calibrate the machine
+		* @return whether calibration was successful
+		*/
 		virtual bool train_locked(SGVector<index_t> subset_indices);
 
+		/** returns calibrated predictions 
+		* @param features on which to apply the machine
+		* @return binary labels
+		*/
 		virtual CBinaryLabels* apply_binary(CFeatures* features);
 
-		virtual CMulticlassLabels* get_multiclass_result(
-		    CMulticlassLabels* result_labels, index_t num_calibration_machines);
-
+		/** returns calibrated multiclass predictions
+		* @param features on which to apply machine
+		* @return multiclass labels
+		*/
 		virtual CMulticlassLabels* apply_multiclass(CFeatures* features);
 
+		/** returns calibrated multiclass predictions for a locked machine
+		* @param subset_indices on which to apply machine
+		* @return multiclass labels
+		*/
 		virtual CMulticlassLabels*
 		apply_locked_multiclass(SGVector<index_t> subset_indices);
 
+		/** returns calibrated predictions for a locked machine
+		* @param features on which to apply the machine
+		* @return binary labels
+		*/
 		virtual CBinaryLabels*
 		apply_locked_binary(SGVector<index_t> subset_indices);
 
+		/** returns current learning machine
+		* @return learning machine
+		*/
 		virtual CMachine* get_machine();
 
+		/** set learning machine
+		* @param machine the learning machine to be calibrated
+		*/
 		virtual void set_machine(CMachine* machine);
 
+		/** set method to be used for calibration
+		* @param calibration_method the calibration method to be used
+		*/
 		virtual void
 		set_calibration_method(CCalibrationMethod* calibration_method);
 
+		/** get current calibration method
+		* @return calibration method
+		*/
 		virtual CCalibrationMethod* get_calibration_method();
 
 	private:
+		/** helper method to get machine result for given data
+		* @param features on which to apply the machine
+		* @return predicted labels
+		*/
 		CLabels* apply_once(CFeatures* features);
 
+		/** helper method to get machine result for given data
+		* @param subset_indices on which to apply the machine
+		* @return predicted labels
+		*/
 		CLabels* apply_once(SGVector<index_t> subset_indices);
 
+		/** helper method to train both unlocked and locked machines
+		* @param training_data on which to train the machine
+		* @return whether training was successful
+		*/
 		template <typename T>
 		bool train_calibration_machine(T training_data);
 
+		/** helper method to get calibrated multiclass labels
+		* @param result_labels predicted labels to calibrate
+		* @param num_calibration_machines number of calibration method instances
+		* @return calibrated multiclass labels
+		*/
+		CMulticlassLabels* get_multiclass_result(
+		    CMulticlassLabels* result_labels, index_t num_calibration_machines);
+
+		/** helper method to get calibrated binary labels
+		* @param data on which to get calibrated predictions
+		* @return calibrated labels
+		*/
 		template <typename T>
 		CBinaryLabels* get_binary_result(T data);
 
+		/** initialize variables and register them
+		*/
 		void init();
 
+		/** helper method to train locked machine on given indices
+		* @param subset_indices on which to train the machine
+		* @return whether training was successful
+		*/
 		bool train_one_machine(SGVector<index_t> subset_indices);
 
+		/** helper method to train machine on given features
+		* @param features on which to train the machine
+		* @return whether training was successful
+		*/
 		bool train_one_machine(CFeatures* features);
 
 	private:
+		/** learning machine to be calibrated */
 		CMachine* m_machine;
+		/** array of calibration method instances */
 		CDynamicObjectArray* m_calibration_machines;
+		/** calibration method */
 		CCalibrationMethod* m_method;
 	};
 }

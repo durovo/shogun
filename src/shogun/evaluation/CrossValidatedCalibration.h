@@ -49,6 +49,7 @@ namespace shogun
 	{
 
 	public:
+		/** constructor */
 		CCrossValidatedCalibration();
 
 		/** constructor
@@ -63,53 +64,108 @@ namespace shogun
 		    CSplittingStrategy* splitting_strategy,
 		    CCalibrationMethod* calibration_method);
 
+		/** destructor */
 		virtual ~CCrossValidatedCalibration();
 
+		/** get name
+		 *
+		 * @return CrossValidatedCalibration
+		 */
 		virtual const char* get_name() const
 		{
 			return "CrossValidatedCalibration";
 		}
 
+		/** returns problem type of the machine to be calibrated
+		 * @return problem type
+		 */
 		virtual EProblemType get_machine_problem_type() const;
 
+		/** do cross validated calibration on machine
+		* @param data on which the machine is to trained
+		* @return whether training was successful
+		*/
 		virtual bool train(CFeatures* data = NULL);
 
+		/** get calibrated result for binary machine
+		* @param features the features on which the machine must be applied
+		* @return binary labels
+		*/
 		virtual CBinaryLabels* apply_binary(CFeatures* features = NULL);
 
+		/** get calibrated result for locked binary machine
+		* @param subset_indices, indices on which the machine is to be applied
+		* @return binary labels
+		*/
 		virtual CBinaryLabels*
 		apply_locked_binary(SGVector<index_t> subset_indices);
 
+		/** do cross validated calibration on locked machine
+		* @param indices on which the machine is to trained
+		* @return whether training was successful
+		*/
 		virtual bool train_locked(SGVector<index_t> indices);
 
+		/** get calibrated result for locked multiclass machine
+		* @param subset_indices, indices on which the machine is to be applied
+		* @return multiclass labels
+		*/
 		virtual CMulticlassLabels*
 		apply_locked_multiclass(SGVector<index_t> subset_indices);
 
+		/** get calibrated result for multiclass machine
+		* @param features the features on which the machine must be applied
+		* @return multiclass labels
+		*/
 		virtual CMulticlassLabels* apply_multiclass(CFeatures* features);
 
 		/** get learning machine
-		*   @return learning machine
+		* @return learning machine
 		*/
 		CMachine* get_machine() const;
 
 	private:
+		/** initialize and register variables
+		*/
 		void init();
 
+		/** helper function to get calibrated multiclass result
+		* @param training_data on which to apply machine
+		*/
 		template <typename T>
 		CMulticlassLabels* get_multiclass_result(T training_data);
 
+		/** helper function to get calibrated binary result
+		* @param training_data on which to apply machine
+		*/
 		template <typename T>
 		CBinaryLabels* get_binary_result(T training_data);
 
+		/** helper function to get predictions given features
+		* @param machine, trained machine
+		* @param features, features on which the machine is to be applied
+		* @return predicted labels
+		*/
 		CLabels* apply_once(CMachine* machine, CFeatures* features);
 
+		/** helper function to get predictions given subset indices
+		* @param machine, locked trained machine
+		* @param subset_indices, indices on which the machine is to be applied
+		* @return predicted labels
+		*/
 		CLabels*
 		apply_once(CMachine* machine, SGVector<index_t> subset_indices);
 
 	private:
+		/** array of calibration machines*/
 		CDynamicObjectArray* m_calibration_machines;
+		/** learning machine to be calibrated*/
 		CMachine* m_machine;
+		/** true labels */
 		CLabels* m_labels;
+		/** cross validation splitting strategy */
 		CSplittingStrategy* m_splitting_strategy;
+		/** method to be used for calibration */
 		CCalibrationMethod* m_calibration_method;
 	};
 }

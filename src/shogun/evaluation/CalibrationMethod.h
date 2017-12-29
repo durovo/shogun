@@ -47,6 +47,8 @@ namespace shogun
 	class CCalibrationMethod : public CMachine
 	{
 	public:
+		/** coonstructor
+		*/
 		CCalibrationMethod();
 
 		/** constructor

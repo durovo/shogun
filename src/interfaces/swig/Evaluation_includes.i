@@ -25,5 +25,9 @@
  #include <shogun/evaluation/CrossValidationSplitting.h>
  #include <shogun/evaluation/StructuredAccuracy.h>
  #include <shogun/evaluation/DirectorContingencyTableEvaluation.h>
+ #include <shogun/evaluation/CrossValidatedCalibration.h>
+ #include <shogun/evaluation/Calibration.h>
+ #include <shogun/evaluation/CalibrationMethod.h>
+ #include <shogun/evaluation/SigmoidCalibrationMethod.h>
 %}
 

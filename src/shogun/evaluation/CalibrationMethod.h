@@ -68,6 +68,10 @@ namespace shogun
 			return PT_BINARY;
 		}
 
+		virtual void set_labels(SGVector<float64_t> labels);
+
+		virtual bool train(SGVector<float64_t> values, SGVector<float64_t> target);
+
 		virtual bool train(SGVector<float64_t> values);
 
 		virtual SGVector<float64_t> apply_binary(SGVector<float64_t> values);
@@ -77,7 +81,7 @@ namespace shogun
 	private:
 		void init();
 
-	private:
+	protected:
 		SGVector<float64_t> m_target_values;
 	};
 }

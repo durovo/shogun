@@ -199,30 +199,30 @@ bool CCalibration::train_calibration_machine(T training_data)
 	CCalibrationMethod* calibration_machine = NULL;
 	if (get_machine_problem_type() == PT_MULTICLASS)
 	{
-		SGVector<float64_t> confidences;
-		index_t num_calibration_machines =
-		    (CLabelsFactory::to_multiclass(get_labels()))->get_num_classes();
-		SG_UNREF(m_calibration_machines);
-		m_calibration_machines =
-		    new CDynamicObjectArray(num_calibration_machines);
-		train_one_machine(training_data);
-		CLabels* result = apply_once(training_data);
-		CMulticlassLabels* result_labels =
-		    CLabelsFactory::to_multiclass(result);
+// 		SGVector<float64_t> confidences;
+// 		index_t num_calibration_machines =
+// 		    (CLabelsFactory::to_multiclass(get_labels()))->get_num_classes();
+// 		SG_UNREF(m_calibration_machines);
+// 		m_calibration_machines =
+// 		    new CDynamicObjectArray(num_calibration_machines);
+// 		train_one_machine(training_data);
+// 		CLabels* result = apply_once(training_data);
+// 		CMulticlassLabels* result_labels =
+// 		    CLabelsFactory::to_multiclass(result);
 
-		for (index_t i = 0; i < num_calibration_machines; ++i)
-		{
-			confidences = result_labels->get_multiclass_confidences(i);
-
-			calibration_machine = (CCalibrationMethod*)m_method->clone();
-			if (!calibration_machine->train(confidences))
-			{
-				return false;
-			}
-			m_calibration_machines->set_element(calibration_machine, i);
-			SG_UNREF(calibration_machine)
-		}
-		SG_UNREF(result_labels)
+// 		for (index_t i = 0; i < num_calibration_machines; ++i)
+// 		{
+// 			confidences = result_labels->get_multiclass_confidences(i);
+// -
+// 			calibration_machine = (CCalibrationMethod*)m_method->clone();
+// 			if (!calibration_machine->train(confidences, ((CMulticlassLabels*) m_labels)->get_multiclass_confidences(i)))
+// 			{
+// 				return false;
+// 			}
+// 			m_calibration_machines->set_element(calibration_machine, i);
+// 			SG_UNREF(calibration_machine)
+// 		}
+// 		SG_UNREF(result_labels)
 	}
 	else
 	{
@@ -238,7 +238,8 @@ bool CCalibration::train_calibration_machine(T training_data)
 		SG_UNREF(result_labels)
 
 		calibration_machine = (CCalibrationMethod*)m_method->clone();
-		if (!calibration_machine->train(confidences))
+		calibration_machine->set_target_values(m_labels->get_values());
+		if (!calibration_machine->train(confidences, m_labels->get_values()))
 		{
 			return false;
 		}

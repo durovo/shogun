@@ -62,6 +62,11 @@ void CCalibrationMethod::init()
 	    MS_NOT_AVAILABLE);
 }
 
+void CCalibrationMethod::set_labels(SGVector<float64_t> labels)
+{
+	m_target_values = labels;
+}
+
 SGVector<float64_t> CCalibrationMethod::apply_binary(SGVector<float64_t> values)
 {
 	SG_NOTIMPLEMENTED
@@ -69,6 +74,13 @@ SGVector<float64_t> CCalibrationMethod::apply_binary(SGVector<float64_t> values)
 }
 
 bool CCalibrationMethod::train(SGVector<float64_t> values)
+{
+	SG_NOTIMPLEMENTED
+
+	return true;
+}
+
+bool CCalibrationMethod::train(SGVector<float64_t> values, SGVector<float64_t> target)
 {
 	SG_NOTIMPLEMENTED
 

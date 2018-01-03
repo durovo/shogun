@@ -44,7 +44,8 @@
 
 namespace shogun
 {
-
+	class CMachine;
+	
 	class CCrossValidatedCalibration : public CMachine
 	{
 
@@ -123,6 +124,14 @@ namespace shogun
 		* @return learning machine
 		*/
 		CMachine* get_machine() const;
+
+		virtual void set_machine(CMachine* machine);
+
+		virtual void set_calibration_method(CCalibrationMethod* method);
+
+		virtual void set_splitting_strategy(CSplittingStrategy* splitting_strategy);
+
+		virtual void set_labels(CLabels* labels);
 
 	private:
 		/** initialize and register variables

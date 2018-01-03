@@ -49,6 +49,10 @@
 %rename(CrossValidationResult) CCrossValidationResult;
 %rename(StructuredAccuracy) CStructuredAccuracy;
 %rename(DirectorContingencyTableEvaluation) CDirectorContingencyTableEvaluation;
+%rename(CrossValidatedCalibration) CCrossValidatedCalibration;
+%rename(Calibration) CCalibration;
+%rename(CalibrationMethod) CCalibrationMethod;
+%rename(SigmoidCalibrationMethod) CSigmoidCalibrationMethod;
 
 /* Include Class Headers to make them visible from within the target language */
 %include <shogun/evaluation/EvaluationResult.h>
@@ -77,3 +81,7 @@
 %include <shogun/evaluation/CrossValidationSplitting.h>
 %include <shogun/evaluation/StructuredAccuracy.h>
 %include <shogun/evaluation/DirectorContingencyTableEvaluation.h>
+%include <shogun/evaluation/CrossValidatedCalibration.h>
+%include <shogun/evaluation/Calibration.h>
+%include <shogun/evaluation/CalibrationMethod.h>
+%include <shogun/evaluation/SigmoidCalibrationMethod.h>

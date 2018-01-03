@@ -45,6 +45,7 @@
 #include <shogun/machine/Machine.h>
 #include <shogun/mathematics/Statistics.h>
 #include <shogun/mathematics/linalg/LinalgNamespace.h>
+#include <shogun/evaluation/SigmoidCalibrationMethod.h>
 
 using namespace shogun;
 using namespace linalg;
@@ -91,7 +92,7 @@ void CCrossValidatedCalibration::init()
 	m_machine = new CMachine();
 	m_labels = new CBinaryLabels();
 	m_splitting_strategy = new CStratifiedCrossValidationSplitting();
-	m_calibration_method = new CCalibrationMethod();
+	m_calibration_method = new CSigmoidCalibrationMethod();
 	m_calibration_machines = new CDynamicObjectArray();
 
 	SG_ADD(
@@ -110,14 +111,47 @@ void CCrossValidatedCalibration::init()
 	    "array of calibration machines", MS_NOT_AVAILABLE);
 }
 
+void CCrossValidatedCalibration::set_machine(CMachine* machine)
+{	
+	SG_UNREF(m_machine);
+	m_machine = machine;
+	SG_REF(m_machine);
+}
+
+void CCrossValidatedCalibration::set_calibration_method(CCalibrationMethod* method)
+{
+	SG_UNREF(m_calibration_method);
+	m_calibration_method = method;
+	SG_REF(m_calibration_method);
+}
+
+void CCrossValidatedCalibration::set_splitting_strategy(CSplittingStrategy* splitting_strategy)
+{
+	SG_UNREF(m_splitting_strategy);
+	m_splitting_strategy = splitting_strategy;
+	SG_REF(m_splitting_strategy);
+}
+
+void CCrossValidatedCalibration::set_labels(CLabels* labels) 
+{
+	SG_UNREF(m_labels);
+	m_labels = labels;
+	SG_REF(m_labels);
+}
+
 EProblemType CCrossValidatedCalibration::get_machine_problem_type() const
 {
 	return m_machine->get_machine_problem_type();
 }
 
+CMachine* CCrossValidatedCalibration::get_machine() const
+{
+	return m_machine;
+}
+
 bool CCrossValidatedCalibration::train(CFeatures* data)
 {
-	// code borrowed from Calibration.cpp
+	// code borrowed from CrossValidation.cpp
 	index_t num_subsets = m_splitting_strategy->get_num_subsets();
 
 	SG_UNREF(m_calibration_machines);
@@ -325,6 +359,7 @@ CBinaryLabels* CCrossValidatedCalibration::get_binary_result(T data)
 	result = apply_once(temp_machine, data);
 	result_labels = CLabelsFactory::to_binary(result);
 	result_values = result_labels->get_values();
+	result_values.zero();
 
 	for (index_t i = 0; i < num_machines; ++i)
 	{

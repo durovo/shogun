@@ -65,7 +65,7 @@ namespace shogun
 			return PT_BINARY;
 		}
 
-		virtual bool train(SGVector<float64_t> values);
+		virtual bool train(SGVector<float64_t> values, SGVector<float64_t> target);
 
 		virtual SGVector<float64_t> apply_binary(SGVector<float64_t> values);
 

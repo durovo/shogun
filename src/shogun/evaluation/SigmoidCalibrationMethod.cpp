@@ -80,7 +80,7 @@ CSigmoidCalibrationMethod::apply_binary(SGVector<float64_t> values)
 
 bool CSigmoidCalibrationMethod::train(SGVector<float64_t> values, SGVector<float64_t> target)
 {
-	CStatistics::SigmoidParamters params = CStatistics::fit_sigmoid(values, target);
+	CStatistics::SigmoidParamters params = CStatistics::fit_sigmoid(values);//, m_target_values);
 	m_a = params.a;
 	m_b = params.b;
 

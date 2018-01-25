@@ -91,3 +91,8 @@ void CCalibrationMethod::set_target_values(SGVector<float64_t> target_values)
 {
 	m_target_values = target_values;
 }
+
+SGVector<float64_t> CCalibrationMethod::get_target_values()
+{
+	return m_target_values;
+}

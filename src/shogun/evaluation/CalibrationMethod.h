@@ -78,6 +78,8 @@ namespace shogun
 
 		virtual void set_target_values(SGVector<float64_t> target_values);
 
+		virtual SGVector<float64_t> get_target_values();
+
 	private:
 		void init();
 

@@ -44,10 +44,9 @@ TEST(CrossValidatedCalibrationTest, check_probability_sum)
 
 	index_t num_classes = pred->get_num_classes();
 
-	SGVector<float64_t> confidence_sums;
-	confidence_sums = pred->get_multiclass_confidences(0);
+	index_t num_samples = test_feats->get_num_vectors();
 
-  confidence_sums.zero();
+	SGVector<float64_t> confidence_sums(num_samples);
 
 	for (index_t i = 0; i < num_classes; ++i)
 	{

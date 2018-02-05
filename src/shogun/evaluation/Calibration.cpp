@@ -237,9 +237,19 @@ bool CCalibration::train_calibration_machine(T training_data)
 
 		SG_UNREF(result_labels)
 
+		auto true_labels = CLabelsFactory::to_binary(m_labels);
+		auto vals = true_labels->get_labels();
+
 		calibration_machine = (CCalibrationMethod*)m_method->clone();
-		calibration_machine->set_target_values(m_labels->get_values());
-		if (!calibration_machine->train(confidences, m_labels->get_values()))
+		calibration_machine->set_target_values(vals);
+
+		// printf("In Calibration: \n");
+		// printf("vector length = %d\n", vals.vlen);
+		// for (index_t i=0; i<vals.vlen; i++)
+		// {
+		// 	printf("%f\n", vals.vector[i]);
+		// }
+		if (!calibration_machine->train(confidences, vals))
 		{
 			return false;
 		}

@@ -151,6 +151,17 @@ CMachine* CCrossValidatedCalibration::get_machine() const
 
 bool CCrossValidatedCalibration::train(CFeatures* data)
 {
+	// m_machine->train(data);
+	// CCalibration* calibrator = new CCalibration();
+	// 	calibrator->set_machine(m_machine);
+	// 	calibrator->set_labels(m_labels);
+	// 	calibrator->set_calibration_method(m_calibration_method);
+	// bool trained = calibrator->train(data);
+	// SG_UNREF(m_calibration_machines);
+
+	// m_calibration_machines = new CDynamicObjectArray(1);
+	// m_calibration_machines->set_element(calibrator, 0);
+	// return trained;
 	// code borrowed from CrossValidation.cpp
 	index_t num_subsets = m_splitting_strategy->get_num_subsets();
 
@@ -236,7 +247,13 @@ bool CCrossValidatedCalibration::train(CFeatures* data)
 
 		CCalibration* calibrator = new CCalibration();
 		calibrator->set_machine((CMachine*)machine->clone());
-		calibrator->set_labels((CLabels*)labels->clone());
+		calibrator->set_labels(labels);
+		// printf("In CVCalibration: \n");
+		// auto vals = labels->get_values();
+		// for (index_t q=0; q<10; q++)
+		// {
+		// 	printf("%f\n", vals.vector[q]);
+		// }
 		calibrator->set_calibration_method(
 		    (CCalibrationMethod*)m_calibration_method->clone());
 		bool trained = calibrator->train((CFeatures*)features->clone());
@@ -358,12 +375,12 @@ CBinaryLabels* CCrossValidatedCalibration::get_binary_result(T data)
 	temp_machine = (CMachine*)m_calibration_machines->get_element(0);
 	result = apply_once(temp_machine, data);
 	result_labels = CLabelsFactory::to_binary(result);
-	result_values = result_labels->get_values();
+	result_values = result_labels->get_labels();
 	result_values.zero();
 
 	for (index_t i = 0; i < num_machines; ++i)
 	{
-		temp_machine = (CMachine*)m_calibration_machines->get_element(0);
+		temp_machine = (CMachine*)m_calibration_machines->get_element(i);
 		result = apply_once(temp_machine, data);
 		temp_result = CLabelsFactory::to_binary(result);
 		result_values += temp_result->get_values();

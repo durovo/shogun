@@ -311,10 +311,9 @@ public:
 	 * \f$\frac{1}{(1+\exp(f)}\f$ otherwise
 	 *
 	 * @param scores scores to fit the sigmoid to
+	 * @param labels ground truth labels
 	 * @return struct containing the sigmoid's shape parameters a and b
 	 */
-	static SigmoidParamters fit_sigmoid(SGVector<float64_t> scores);
-
 	static SigmoidParamters fit_sigmoid(SGVector<float64_t> scores, SGVector<float64_t> labels);
 
 	/** The log determinant of a dense matrix

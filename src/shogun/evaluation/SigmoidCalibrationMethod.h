@@ -41,7 +41,6 @@
 
 #include <shogun/evaluation/CalibrationMethod.h>
 #include <shogun/machine/Machine.h>
-#include <shogun/mathematics/Math.h>
 
 namespace shogun
 {
@@ -51,8 +50,6 @@ namespace shogun
 	public:
 		CSigmoidCalibrationMethod();
 
-		CSigmoidCalibrationMethod(SGVector<float64_t> target_values);
-
 		virtual ~CSigmoidCalibrationMethod();
 
 		virtual const char* get_name() const
@@ -60,20 +57,15 @@ namespace shogun
 			return "SigmoidCalibrationMethod";
 		}
 
-		virtual EProblemType get_machine_problem_type() const
-		{
-			return PT_BINARY;
-		}
+		virtual bool fit_binary(CBinaryLabels* predictions, CBinaryLabels* targets);
 
-		virtual bool train(SGVector<float64_t> values, SGVector<float64_t> target);
-
-		virtual SGVector<float64_t> apply_binary(SGVector<float64_t> values);
+		virtual CBinaryLabels* calibrate_binary(CBinaryLabels* predictions);
 
 	private:
 		void init();
 
 	private:
-		float64_t m_a, m_b;
+		CDynamicObjectArray* m_sigmoid_parameters;
 	};
 }
 #endif

@@ -44,55 +44,19 @@ CCalibrationMethod::CCalibrationMethod() : CMachine()
 	init();
 }
 
-CCalibrationMethod::CCalibrationMethod(SGVector<float64_t> target_values)
-{
-	init();
-	m_target_values = target_values;
-}
-
 CCalibrationMethod::~CCalibrationMethod()
 {
 }
 
-void CCalibrationMethod::init()
+bool CCalibrationMethod::fit_binary(CBinaryLabels* predictions, CBinaryLabels* targets)
 {
-	m_target_values = SGVector<float64_t>();
-	SG_ADD(
-	    &m_target_values, "m_target_values", "the true label values",
-	    MS_NOT_AVAILABLE);
+	SG_NOTIMPLEMENTED
+
+	return true;
 }
 
-void CCalibrationMethod::set_labels(SGVector<float64_t> labels)
-{
-	m_target_values = labels;
-}
-
-SGVector<float64_t> CCalibrationMethod::apply_binary(SGVector<float64_t> values)
+CBinaryLabels* CCalibrationMethod::calibrate_binary(CBinaryLabels* predictions)
 {
 	SG_NOTIMPLEMENTED
 	return NULL;
-}
-
-bool CCalibrationMethod::train(SGVector<float64_t> values)
-{
-	SG_NOTIMPLEMENTED
-
-	return true;
-}
-
-bool CCalibrationMethod::train(SGVector<float64_t> values, SGVector<float64_t> target)
-{
-	SG_NOTIMPLEMENTED
-
-	return true;
-}
-
-void CCalibrationMethod::set_target_values(SGVector<float64_t> target_values)
-{
-	m_target_values = target_values;
-}
-
-SGVector<float64_t> CCalibrationMethod::get_target_values()
-{
-	return m_target_values;
 }

@@ -44,17 +44,12 @@
 namespace shogun
 {
 
-	class CCalibrationMethod : public CMachine
+	class CCalibrationMethod : public CSGObject
 	{
 	public:
 		/** coonstructor
 		*/
 		CCalibrationMethod();
-
-		/** constructor
-		 * @param target_values, true value of each label
-		 */
-		CCalibrationMethod(SGVector<float64_t> target_values);
 
 		virtual ~CCalibrationMethod();
 
@@ -68,23 +63,11 @@ namespace shogun
 			return PT_BINARY;
 		}
 
-		virtual void set_labels(SGVector<float64_t> labels);
+		virtual bool fit_binary(CBinaryLabels* predictions, CBinaryLabels* targets);
 
-		virtual bool train(SGVector<float64_t> values, SGVector<float64_t> target);
-
-		virtual bool train(SGVector<float64_t> values);
+		virtual CBinaryLabels* calibrate_binary(CBinaryLabels* predictions);
 
 		virtual SGVector<float64_t> apply_binary(SGVector<float64_t> values);
-
-		virtual void set_target_values(SGVector<float64_t> target_values);
-
-		virtual SGVector<float64_t> get_target_values();
-
-	private:
-		void init();
-
-	protected:
-		SGVector<float64_t> m_target_values;
 	};
 }
 #endif

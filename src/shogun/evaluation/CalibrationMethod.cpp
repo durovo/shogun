@@ -39,9 +39,8 @@
 
 using namespace shogun;
 
-CCalibrationMethod::CCalibrationMethod() : CMachine()
+CCalibrationMethod::CCalibrationMethod()
 {
-	init();
 }
 
 CCalibrationMethod::~CCalibrationMethod()
@@ -58,5 +57,19 @@ bool CCalibrationMethod::fit_binary(CBinaryLabels* predictions, CBinaryLabels* t
 CBinaryLabels* CCalibrationMethod::calibrate_binary(CBinaryLabels* predictions)
 {
 	SG_NOTIMPLEMENTED
+	return NULL;
+}
+
+bool CCalibrationMethod::fit_multiclass(CMulticlassLabels* predictions, CMulticlassLabels* targets)
+{
+	SG_NOTIMPLEMENTED
+	
+	return true;
+}
+
+CMulticlassLabels* CCalibrationMethod::calibrate_multiclass(CMulticlassLabels* predictions)
+{
+	SG_NOTIMPLEMENTED
+
 	return NULL;
 }

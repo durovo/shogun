@@ -41,6 +41,8 @@
 
 #include <shogun/evaluation/CalibrationMethod.h>
 #include <shogun/machine/Machine.h>
+#include <shogun/mathematics/Statistics.h>
+
 
 namespace shogun
 {
@@ -61,11 +63,16 @@ namespace shogun
 
 		virtual CBinaryLabels* calibrate_binary(CBinaryLabels* predictions);
 
-	private:
-		void init();
+		virtual bool fit_multiclass(CMulticlassLabels* predictions, CMulticlassLabels* targets);
+
+		virtual CMulticlassLabels* calibrate_multiclass(CMulticlassLabels* predictions);
 
 	private:
-		CStatistics:;SigmoidParamters* m_sigmoid_parameters;
+		void init();
+		SGVector<float64_t> calibrate_values(SGVector<float64_t> values, CStatistics::SigmoidParamters params);
+
+	private:
+		CStatistics::SigmoidParamters* m_sigmoid_parameters;
 	};
 }
 #endif

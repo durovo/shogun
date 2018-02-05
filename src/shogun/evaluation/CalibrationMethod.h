@@ -67,7 +67,9 @@ namespace shogun
 
 		virtual CBinaryLabels* calibrate_binary(CBinaryLabels* predictions);
 
-		virtual SGVector<float64_t> apply_binary(SGVector<float64_t> values);
+		virtual bool fit_multiclass(CMulticlassLabels* predictions, CMulticlassLabels* targets);
+
+		virtual CMulticlassLabels* calibrate_multiclass(CMulticlassLabels* predictions);
 	};
 }
 #endif

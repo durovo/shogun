@@ -39,6 +39,7 @@
 #include <shogun/machine/Machine.h>
 #include <shogun/mathematics/Math.h>
 #include <shogun/mathematics/Statistics.h>
+#include <shogun/mathematics/linalg/LinalgNamespace.h>
 
 using namespace shogun;
 
@@ -49,7 +50,7 @@ CSigmoidCalibrationMethod::CSigmoidCalibrationMethod() : CCalibrationMethod()
 
 CSigmoidCalibrationMethod::~CSigmoidCalibrationMethod()
 {
-	SG_UNREF(m_sigmoid_parameters);
+	delete(m_sigmoid_parameters);
 }
 
 void CSigmoidCalibrationMethod::init()
@@ -65,8 +66,6 @@ bool CSigmoidCalibrationMethod::fit_binary(CBinaryLabels* predictions, CBinaryLa
 {
 	auto params = CStatistics::fit_sigmoid(predictions->get_values(), targets->get_labels());
 
-	SG_UNREF(m_sigmoid_parameters)
-
 	delete(m_sigmoid_parameters);
 
 	m_sigmoid_parameters = new CStatistics::SigmoidParamters[1];
@@ -81,15 +80,85 @@ CSigmoidCalibrationMethod::calibrate_binary(CBinaryLabels* predictions)
 {
 	auto params = m_sigmoid_parameters[0];
 	// Convert predictions to probabilties 
-	auto values = predictions[->get_values()];
+	auto values = calibrate_values(predictions->get_values(), params);
+	
+	CBinaryLabels* calibrated_predictions = new CBinaryLabels(values);
+
+	return calibrated_predictions;
+}
+
+bool CSigmoidCalibrationMethod::fit_multiclass(CMulticlassLabels* predictions, CMulticlassLabels* targets)
+{
+	index_t num_classes =
+	    predictions->get_num_classes();
+	delete(m_sigmoid_parameters);
+	m_sigmoid_parameters =
+	    new CStatistics::SigmoidParamters[num_classes];
+
+	SGVector<float64_t> confidences;
+
+	for (index_t i = 0; i < num_classes; ++i)
+	{
+		confidences = predictions->get_multiclass_confidences(i);
+
+		auto binary_labels = targets->get_binary_for_class(i);
+		m_sigmoid_parameters[i] = CStatistics::fit_sigmoid(confidences, binary_labels->get_labels());
+	}
+	
+	return true;
+}
+
+CMulticlassLabels*
+CSigmoidCalibrationMethod::calibrate_multiclass(CMulticlassLabels* predictions)
+{
+	index_t num_classes = predictions->get_num_classes();
+
+	auto result_labels = (CMulticlassLabels*) predictions->clone();
+
+	for (index_t i = 0; i < num_classes; ++i)
+	{
+		SGVector<float64_t> calibrated_values =
+		    calibrate_values(predictions->get_multiclass_confidences(i), m_sigmoid_parameters[i]);
+		result_labels->set_multiclass_confidences(i, calibrated_values);
+	}
+
+	SGVector<float64_t> temp_confidences =
+	    result_labels->get_multiclass_confidences(0);
+	temp_confidences.zero();
+
+	index_t num_samples = temp_confidences.vlen;
+
+// normalize the probabilities
+#pragma omp parallel for
+	for (index_t i = 0; i < num_classes; ++i)
+	{
+		SGVector<float64_t> confidence_values =
+		    result_labels->get_multiclass_confidences(i);
+		linalg::add(temp_confidences, confidence_values, temp_confidences, 1.0);
+	}
+#pragma omp parallel for
+	for (index_t i = 0; i < num_classes; ++i)
+	{
+		SGVector<float64_t> confidence_values =
+		    result_labels->get_multiclass_confidences(i);
+		for (index_t j = 0; j < num_samples; ++j)
+		{
+			confidence_values[j] /= temp_confidences[j];
+		}
+		result_labels->set_multiclass_confidences(i, confidence_values);
+	}
+
+	return result_labels;
+}
+
+SGVector<float64_t>
+CSigmoidCalibrationMethod::calibrate_values(SGVector<float64_t> values, CStatistics::SigmoidParamters params)
+{
 	for (index_t i = 0; i < values.vlen; ++i)
 	{
 		float64_t fApB = values[i] * params.a + params.b;
 		values[i] = fApB >= 0 ? CMath::exp(-fApB) / (1.0 + CMath::exp(-fApB))
 		                      : 1.0 / (1 + CMath::exp(fApB));
 	}
-
-	CBinaryLabels* calibrated_predictions = new CBinaryLabels(values);
-
-	return calibrated_predictions;
+	return values;
 }

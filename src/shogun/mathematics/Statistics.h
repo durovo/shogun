@@ -316,6 +316,8 @@ public:
 	 */
 	static SigmoidParamters fit_sigmoid(SGVector<float64_t> scores, SGVector<float64_t> labels);
 
+	static SigmoidParamters fit_sigmoid(SGVector<float64_t> scores);
+
 	/** The log determinant of a dense matrix
 	 *
 	 * If determinant of the input matrix is positive, it returns the logarithm of the value.

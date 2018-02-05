@@ -54,10 +54,11 @@ CSigmoidCalibrationMethod::~CSigmoidCalibrationMethod()
 
 void CSigmoidCalibrationMethod::init()
 {
-	m_sigmoid_parameters = new CDynamicObjectArray();
-	SG_ADD(
-	    (CSGObject**)&m_sigmoid_parameters, "m_sigmoid_parameters",
-	    "array of sigmoid calibration parameters", MS_NOT_AVAILABLE);
+	// m_sigmoid_parameters = new CDynamicObjectArray();
+	// SG_ADD(
+	//     (CSGObject**)&m_sigmoid_parameters, "m_sigmoid_parameters",
+	//     "array of sigmoid calibration parameters", MS_NOT_AVAILABLE);
+	m_sigmoid_parameters = new CStatistics::SigmoidParamters[1];
 }
 
 bool CSigmoidCalibrationMethod::fit_binary(CBinaryLabels* predictions, CBinaryLabels* targets)
@@ -66,9 +67,11 @@ bool CSigmoidCalibrationMethod::fit_binary(CBinaryLabels* predictions, CBinaryLa
 
 	SG_UNREF(m_sigmoid_parameters)
 
-	m_sigmoid_parameters = new CDynamicObjectArray(1);
+	delete(m_sigmoid_parameters);
 
-	m_sigmoid_parameters->set_element(params, 0);
+	m_sigmoid_parameters = new CStatistics::SigmoidParamters[1];
+
+	m_sigmoid_parameters[0] = params;
 
 	return true;
 }
@@ -76,9 +79,9 @@ bool CSigmoidCalibrationMethod::fit_binary(CBinaryLabels* predictions, CBinaryLa
 CBinaryLabels*
 CSigmoidCalibrationMethod::calibrate_binary(CBinaryLabels* predictions)
 {
-	auto params = (CStatististics::SigmoidParamters)m_sigmoid_parameters->get_element(0);
+	auto params = m_sigmoid_parameters[0];
 	// Convert predictions to probabilties 
-	auto values = predictions->get_values();
+	auto values = predictions[->get_values()];
 	for (index_t i = 0; i < values.vlen; ++i)
 	{
 		float64_t fApB = values[i] * params.a + params.b;

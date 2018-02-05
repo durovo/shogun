@@ -65,7 +65,7 @@ namespace shogun
 		void init();
 
 	private:
-		CDynamicObjectArray* m_sigmoid_parameters;
+		CStatistics:;SigmoidParamters* m_sigmoid_parameters;
 	};
 }
 #endif

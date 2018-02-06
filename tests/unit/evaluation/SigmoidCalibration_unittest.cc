@@ -34,12 +34,12 @@
  * policies,
  * either expressed or implied, of the Shogun Development Team.
  */
-#include <shogun/evaluation/SigmoidCalibration.h>
+#include <shogun/evaluation/SigmoidCalibrationMethod.h>
 #include <gtest/gtest.h>
 
 using namespace shogun;
 
-TEST(SigmoidCalibrationTest, binary_calibration)
+TEST(SigmoidCalibrationMethodTest, binary_calibration)
 {
 	CMath::init_random(8);
 	SGVector<float64_t> preds(10), labs(10);
@@ -71,26 +71,29 @@ TEST(SigmoidCalibrationTest, binary_calibration)
 
 	SG_REF(predictions)
 
-	CSigmoidCalibration* sigmoid_calibration = new CSigmoidCalibration();
+	CSigmoidCalibrationMethod* sigmoid_calibration = new CSigmoidCalibrationMethod();
 
 	auto calibrated = sigmoid_calibration->fit_binary(predictions, labels);
 
-	EXPECT_EQ(calibrated, true)
+	EXPECT_EQ(calibrated, true);
 
 	auto calibrated_labels = sigmoid_calibration->calibrate_binary(predictions);
 
 	auto values = calibrated_labels->get_values();
 
-	EXPECT_EQ(values[0], 0.656629)
-	EXPECT_EQ(values[1], 0.159375)
-	EXPECT_EQ(values[2], 0.718535)
-	EXPECT_EQ(values[3], 0.819801)
-	EXPECT_EQ(values[4], 0.201977)
-	EXPECT_EQ(values[5], 0.124359)
-	EXPECT_EQ(values[6], 0.819801)
-	EXPECT_EQ(values[7], 0.656629)
-	EXPECT_EQ(values[8], 0.124359)
-	EXPECT_EQ(values[9], 0.718535)
+	EXPECT_EQ(values[0], 0.656628663983293337);
+	EXPECT_EQ(values[1], 0.159375349583615822);
+	EXPECT_EQ(values[2], 0.718534704684106407);
+	EXPECT_EQ(values[3], 0.819801347075004516);
+	EXPECT_EQ(values[4], 0.201976857736835741);
+	EXPECT_EQ(values[5], 0.124359200656053326);
+	EXPECT_EQ(values[6], 0.819801347075004516);
+	EXPECT_EQ(values[7], 0.656628663983293337);
+	EXPECT_EQ(values[8], 0.124359200656053326);
+	EXPECT_EQ(values[9], 0.718534704684106407);
 
+	SG_UNREF(sigmoid_calibration)
 	SG_UNREF(predictions)
+	SG_UNREF(labels)
+	SG_UNREF(calibrated_labels)
 }

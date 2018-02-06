@@ -1,6 +1,7 @@
 /*
  * Copyright (c) The Shogun Machine Learning Toolbox
  * Written (w) 2012 - 2013 Heiko Strathmann
+ * Written (w) 2018 Dhruv Arya
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,43 +34,63 @@
  * policies,
  * either expressed or implied, of the Shogun Development Team.
  */
+#include <shogun/evaluation/SigmoidCalibration.h>
+#include <gtest/gtest.h>
 
-#ifndef _CALIBRATION_METHOD_H__
-#define _CALIBRATION_METHOD_H__
+using namespace shogun;
 
-#include <shogun/lib/config.h>
-
-#include <shogun/machine/Machine.h>
-
-namespace shogun
+TEST(SigmoidCalibrationTest, binary_calibration)
 {
+	CMath::init_random(8);
+	SGVector<float64_t> preds(10), labs(10);
 
-	class CCalibrationMethod : public CMachine
-	{
-	public:
-		/** coonstructor
-		*/
-		CCalibrationMethod();
+	preds.vector[0] = 0.6;
+	preds.vector[1] = -0.2;
+	preds.vector[2] = 0.7;
+	preds.vector[3] = 0.9;
+	preds.vector[4] = -0.1;
+	preds.vector[5] = -0.3;
+	preds.vector[6] = 0.9;
+	preds.vector[7] = 0.6;
+	preds.vector[8] = -0.3;
+	preds.vector[9] = 0.7;
 
-		virtual ~CCalibrationMethod();
+	labs.vector[0] = 1;
+	labs.vector[1] = -1;
+	labs.vector[2] = 1;
+	labs.vector[3] = 1;
+	labs.vector[4] = -1;
+	labs.vector[5] = -1;
+	labs.vector[6] = 1;
+	labs.vector[7] = 1;
+	labs.vector[8] = -1;
+	labs.vector[9] = -1;
 
-		virtual const char* get_name() const
-		{
-			return "CalibrationMethod";
-		}
+	CBinaryLabels* predictions = new CBinaryLabels(preds);
+	CBinaryLabels* labels = new CBinaryLabels(labs);
 
-		virtual EProblemType get_machine_problem_type() const
-		{
-			return PT_BINARY;
-		}
+	SG_REF(predictions)
 
-		virtual bool fit_binary(CBinaryLabels* predictions, CBinaryLabels* targets);
+	CSigmoidCalibration* sigmoid_calibration = new CSigmoidCalibration();
 
-		virtual CBinaryLabels* calibrate_binary(CBinaryLabels* predictions);
+	auto calibrated = sigmoid_calibration->fit_binary(predictions, labels);
 
-		virtual bool fit_multiclass(CMulticlassLabels* predictions, CMulticlassLabels* targets);
+	EXPECT_EQ(calibrated, true)
 
-		virtual CMulticlassLabels* calibrate_multiclass(CMulticlassLabels* predictions);
-	};
+	auto calibrated_labels = sigmoid_calibration->calibrate_binary(predictions);
+
+	auto values = calibrated_labels->get_values();
+
+	EXPECT_EQ(values[0], 0.656629)
+	EXPECT_EQ(values[1], 0.159375)
+	EXPECT_EQ(values[2], 0.718535)
+	EXPECT_EQ(values[3], 0.819801)
+	EXPECT_EQ(values[4], 0.201977)
+	EXPECT_EQ(values[5], 0.124359)
+	EXPECT_EQ(values[6], 0.819801)
+	EXPECT_EQ(values[7], 0.656629)
+	EXPECT_EQ(values[8], 0.124359)
+	EXPECT_EQ(values[9], 0.718535)
+
+	SG_UNREF(predictions)
 }
-#endif

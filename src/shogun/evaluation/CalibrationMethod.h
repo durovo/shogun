@@ -58,11 +58,6 @@ namespace shogun
 			return "CalibrationMethod";
 		}
 
-		virtual EProblemType get_machine_problem_type() const
-		{
-			return PT_BINARY;
-		}
-
 		virtual bool fit_binary(CBinaryLabels* predictions, CBinaryLabels* targets);
 
 		virtual CBinaryLabels* calibrate_binary(CBinaryLabels* predictions);

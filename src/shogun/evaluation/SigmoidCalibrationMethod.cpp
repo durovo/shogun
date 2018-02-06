@@ -60,6 +60,8 @@ void CSigmoidCalibrationMethod::init()
 	//     (CSGObject**)&m_sigmoid_parameters, "m_sigmoid_parameters",
 	//     "array of sigmoid calibration parameters", MS_NOT_AVAILABLE);
 	m_sigmoid_parameters = new CStatistics::SigmoidParamters[1];
+	// SG_ADD(m_sigmoid_parameters, "m_sigmoid_parameters",
+	//     "array of sigmoid calibration parameters", MS_NOT_AVAILABLE);
 }
 
 bool CSigmoidCalibrationMethod::fit_binary(CBinaryLabels* predictions, CBinaryLabels* targets)
@@ -104,7 +106,7 @@ bool CSigmoidCalibrationMethod::fit_multiclass(CMulticlassLabels* predictions, C
 		auto binary_labels = targets->get_binary_for_class(i);
 		m_sigmoid_parameters[i] = CStatistics::fit_sigmoid(confidences, binary_labels->get_labels());
 	}
-	
+
 	return true;
 }
 

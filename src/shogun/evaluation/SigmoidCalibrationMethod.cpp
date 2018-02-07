@@ -59,7 +59,7 @@ void CSigmoidCalibrationMethod::init()
 	// SG_ADD(
 	//     (CSGObject**)&m_sigmoid_parameters, "m_sigmoid_parameters",
 	//     "array of sigmoid calibration parameters", MS_NOT_AVAILABLE);
-	m_sigmoid_parameters = new CStatistics::SigmoidParamters[1];
+	m_sigmoid_parameters = SG_ALLOC(CStatistics::SigmoidParamters, 1);
 	// SG_ADD(m_sigmoid_parameters, "m_sigmoid_parameters",
 	//     "array of sigmoid calibration parameters", MS_NOT_AVAILABLE);
 }
@@ -68,7 +68,7 @@ bool CSigmoidCalibrationMethod::fit_binary(CBinaryLabels* predictions, CBinaryLa
 {
 	auto params = CStatistics::fit_sigmoid(predictions->get_values(), targets->get_labels());
 
-	delete(m_sigmoid_parameters);
+	SG_FREE(m_sigmoid_parameters)
 
 	m_sigmoid_parameters = new CStatistics::SigmoidParamters[1];
 
@@ -93,18 +93,19 @@ bool CSigmoidCalibrationMethod::fit_multiclass(CMulticlassLabels* predictions, C
 {
 	index_t num_classes =
 	    predictions->get_num_classes();
-	delete(m_sigmoid_parameters);
+	SG_FREE(m_sigmoid_parameters)
 	m_sigmoid_parameters =
-	    new CStatistics::SigmoidParamters[num_classes];
+	    SG_ALLOC(CStatistics::SigmoidParamters, num_classes);
 
 	SGVector<float64_t> confidences;
 
 	for (index_t i = 0; i < num_classes; ++i)
 	{
-		confidences = predictions->get_multiclass_confidences(i);
-
-		auto binary_labels = targets->get_binary_for_class(i);
-		m_sigmoid_parameters[i] = CStatistics::fit_sigmoid(confidences, binary_labels->get_labels());
+		auto class_predictions = predictions->get_binary_for_class(i);
+		auto class_labels = targets->get_binary_for_class(i);
+		auto pred_values = class_predictions->get_values();
+		auto target_labels = class_labels->get_labels();
+		m_sigmoid_parameters[i] = CStatistics::fit_sigmoid(pred_values, target_labels);
 	}
 
 	return true;
@@ -119,8 +120,10 @@ CSigmoidCalibrationMethod::calibrate_multiclass(CMulticlassLabels* predictions)
 
 	for (index_t i = 0; i < num_classes; ++i)
 	{
+		auto binary_predictions = predictions->get_binary_for_class(i);
+		auto class_values = binary_values->get_values();
 		SGVector<float64_t> calibrated_values =
-		    calibrate_values(predictions->get_multiclass_confidences(i), m_sigmoid_parameters[i]);
+		    calibrate_values(class_values, m_sigmoid_parameters[i]);
 		result_labels->set_multiclass_confidences(i, calibrated_values);
 	}
 
@@ -136,20 +139,11 @@ CSigmoidCalibrationMethod::calibrate_multiclass(CMulticlassLabels* predictions)
 	{
 		SGVector<float64_t> confidence_values =
 		    result_labels->get_multiclass_confidences(i);
-		linalg::add(temp_confidences, confidence_values, temp_confidences, 1.0);
+		float64_t sum = SGVector<float64_t>::sum(confidence_values);
+		sum += 1E-10;
+		linalg::scale(confidence_values, confidence_values, 1/sum);
+		result_labels->set_multiclass_confidences(confidence_values, i);
 	}
-#pragma omp parallel for
-	for (index_t i = 0; i < num_classes; ++i)
-	{
-		SGVector<float64_t> confidence_values =
-		    result_labels->get_multiclass_confidences(i);
-		for (index_t j = 0; j < num_samples; ++j)
-		{
-			confidence_values[j] /= temp_confidences[j];
-		}
-		result_labels->set_multiclass_confidences(i, confidence_values);
-	}
-
 	return result_labels;
 }
 

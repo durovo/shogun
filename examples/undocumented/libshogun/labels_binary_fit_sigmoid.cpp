@@ -9,6 +9,7 @@
 
 #include <shogun/base/init.h>
 #include <shogun/labels/BinaryLabels.h>
+#include <shogun/evaluation/SigmoidCalibrationMethod.h>
 
 using namespace shogun;
 
@@ -19,12 +20,13 @@ void test_sigmoid_fitting()
 
 	for (index_t i=0; i<labels->get_num_labels(); ++i)
 		labels->set_value(i%2==0 ? 1 : -1, i);
-
 	labels->get_values().display_vector("scores");
-	labels->scores_to_probabilities();
-	labels->get_values().display_vector("probabilities");
+	CSigmoidCalibrationMethod* sigmoid_calibration = new CSigmoidCalibrationMethod();
+	sigmoid_calibration->fit_binary(labels, labels);
+	CBinaryLabels* calibrated_labels = sigmoid_calibration->calibrate_binary(labels);
+	calibrated_labels->get_values().display_vector("probabilities");
 
-
+	SG_UNREF(calibrated_labels);
 	SG_UNREF(labels);
 }
 

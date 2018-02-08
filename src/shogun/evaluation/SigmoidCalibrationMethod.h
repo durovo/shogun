@@ -46,32 +46,66 @@
 
 namespace shogun
 {
-
+	/** @brief Calibrates labels based on Platt Scaling [1]. Note that first calibration parameters need to be fitted by calling fit. 
+	* Usually this done using the training data and labels. 
+	* [1] Platt J. Probabilistic outputs for support vector machines and comparisons to regularized likelihood methods.
+	* Advances in large margin classifiers. 1999
+	*/
 	class CSigmoidCalibrationMethod : public CCalibrationMethod
 	{
 	public:
+		/** Constructor. */
 		CSigmoidCalibrationMethod();
 
+		/** Destructor. */
 		virtual ~CSigmoidCalibrationMethod();
 
+		/** Get name. */
 		virtual const char* get_name() const
 		{
 			return "SigmoidCalibrationMethod";
 		}
 
+		/** Fit sigmoid parameters for binary labels.
+		* @param predictions The predictions outputted by the machine
+		* @param targets The true labels corresponding to the predictions
+		* @return boolean indicating whether the calibration was succesful
+		**/
 		virtual bool fit_binary(CBinaryLabels* predictions, CBinaryLabels* targets);
 
+		/** Calibrate binary predictions based on parameters learned by calling fit.
+		* @param predictions The predictions outputted by the machine
+		* @return Calibrated binary labels
+		**/
 		virtual CBinaryLabels* calibrate_binary(CBinaryLabels* predictions);
 
+		/** Fit calibration parameters for multiclass labels. Fits sigmoid 
+		* parameters for each class seperately.
+		* @param predictions The predictions outputted by the machine
+		* @param targets The true labels corresponding to the predictions
+		* @return boolean indicating whether the calibration was succesful
+		**/
 		virtual bool fit_multiclass(CMulticlassLabels* predictions, CMulticlassLabels* targets);
 
+		/** Calibrate multiclass predictions based on parameters learned by calling fit.
+		* The predictions are normalized over all classes.
+		* @param predictions The predictions outputted by the machine
+		* @return Calibrated binary labels
+		**/
 		virtual CMulticlassLabels* calibrate_multiclass(CMulticlassLabels* predictions);
 
 	private:
+		/** Initialize parameters */
 		void init();
+
+		/** Helper function that calibrates values of given vector using the given sigmoid parameters
+		* @param values The values to be calibrated
+		* @param params The sigmoid paramters to be used for calibration
+		*/
 		SGVector<float64_t> calibrate_values(SGVector<float64_t> values, CStatistics::SigmoidParamters params);
 
 	private:
+		/** Array to store sigmoid parameters for each class. In case of binary labels, only one pair of parameters are stored. */
 		CStatistics::SigmoidParamters* m_sigmoid_parameters;
 	};
 }

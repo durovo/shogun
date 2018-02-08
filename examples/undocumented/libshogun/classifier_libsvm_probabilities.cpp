@@ -3,6 +3,7 @@
 #include <shogun/kernel/LinearKernel.h>
 #include <shogun/labels/BinaryLabels.h>
 #include <shogun/classifier/svm/LibSVM.h>
+#include <shogun/evaluation/SigmoidCalibrationMethod.h>
 #include <iostream>
 
 using namespace shogun;
@@ -73,16 +74,19 @@ int main(int argc, char** argv)
     using the method described in Lin, H., Lin, C., and Weng,  R. (2007). A note
     on Platt's probabilistic outputs for support vector machines.
     See BinaryLabels documentation for details*/
-    out_labels->scores_to_probabilities();
+    CSigmoidCalibrationMethod* sigmoid_calibration = new CSigmoidCalibrationMethod();
+    sigmoid_calibration->fit_binary(out_labels, out_labels);
+    CBinaryLabels calibrated_labels = sigmoid_calibration->calibrate_binary(out_labels);
 
     //display output labels and probabilities
     for (int32_t i=0; i<num_samples; i++)
     {
         SG_SPRINT("out[%d]=%f (%f)\n", i, out_labels->get_label(i),
-            out_labels->get_value(i));
+            calibrated_labels->get_value(i));
     }
 
     //clean up
+    SG_UNREF(calibrated_labels);
     SG_UNREF(out_labels);
     SG_UNREF(kernel);
     SG_UNREF(features);

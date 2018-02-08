@@ -43,14 +43,14 @@
 
 namespace shogun
 {
-
-	class CCalibrationMethod : public CMachine
+	/** @brief Base class for all calibration methods. Call fit to 
+	fit the parameters on the predictions and the true labels. Call calibrate to calibrate predictions. **/
+	class CCalibrationMethod : public CSGObject
 	{
 	public:
-		/** coonstructor
-		*/
+		/** Constructor. */
 		CCalibrationMethod();
-
+		/** Destructor. */
 		virtual ~CCalibrationMethod();
 
 		virtual const char* get_name() const
@@ -58,17 +58,30 @@ namespace shogun
 			return "CalibrationMethod";
 		}
 
-		virtual EProblemType get_machine_problem_type() const
-		{
-			return PT_BINARY;
-		}
-
+		/** Fit calibration parameters for binary labels.
+		* @param predictions The predictions outputted by the machine
+		* @param targets The true labels corresponding to the predictions
+		* @return boolean indicating whether the calibration was succesful
+		**/
 		virtual bool fit_binary(CBinaryLabels* predictions, CBinaryLabels* targets);
 
+		/** Calibrate binary predictions based on parameters learned by calling fit.
+		* @param predictions The predictions outputted by the machine
+		* @return Calibrated binary labels
+		**/
 		virtual CBinaryLabels* calibrate_binary(CBinaryLabels* predictions);
 
+		/** Fit calibration parameters for multiclass labels.
+		* @param predictions The predictions outputted by the machine
+		* @param targets The true labels corresponding to the predictions
+		* @return boolean indicating whether the calibration was succesful
+		**/
 		virtual bool fit_multiclass(CMulticlassLabels* predictions, CMulticlassLabels* targets);
 
+		/** Calibrate multiclass predictions based on parameters learned by calling fit.
+		* @param predictions The predictions outputted by the machine
+		* @return Calibrated binary labels
+		**/
 		virtual CMulticlassLabels* calibrate_multiclass(CMulticlassLabels* predictions);
 	};
 }

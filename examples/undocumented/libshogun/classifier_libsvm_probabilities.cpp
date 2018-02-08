@@ -76,7 +76,7 @@ int main(int argc, char** argv)
     See BinaryLabels documentation for details*/
     CSigmoidCalibrationMethod* sigmoid_calibration = new CSigmoidCalibrationMethod();
     sigmoid_calibration->fit_binary(out_labels, out_labels);
-    CBinaryLabels calibrated_labels = sigmoid_calibration->calibrate_binary(out_labels);
+    CBinaryLabels* calibrated_labels = sigmoid_calibration->calibrate_binary(out_labels);
 
     //display output labels and probabilities
     for (int32_t i=0; i<num_samples; i++)
